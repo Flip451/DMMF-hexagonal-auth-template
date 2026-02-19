@@ -14,13 +14,13 @@ RUN apt-get update && apt-get install -y \
 # 2. ツールビルド専用ステージ
 FROM chef AS tools-builder
 ARG SCCACHE_VERSION=0.14.0
-ARG CARGO_WATCH_VERSION=8.5.3
+ARG BACON_VERSION=3.22.0
 ARG CARGO_MAKE_VERSION=0.37.24
 ARG SQLX_VERSION=0.8.6
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
     cargo install --locked --version ${SCCACHE_VERSION} sccache --root /usr/local && \
-    cargo install --locked --version ${CARGO_WATCH_VERSION} cargo-watch && \
+    cargo install --locked --version ${BACON_VERSION} bacon && \
     cargo install --locked --version ${CARGO_MAKE_VERSION} cargo-make && \
     cargo install --locked --version ${SQLX_VERSION} sqlx-cli --no-default-features --features postgres
 
@@ -56,7 +56,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
 
 # 6. アプリ開発用ステージ (dev)
 FROM builder-base AS dev
-COPY --from=tools-builder /usr/local/cargo/bin/cargo-watch /usr/local/bin/
+COPY --from=tools-builder /usr/local/cargo/bin/bacon /usr/local/bin/
 COPY --from=tools-builder /usr/local/cargo/bin/cargo-make /usr/local/bin/
 COPY --from=tools-builder /usr/local/cargo/bin/sqlx /usr/local/bin/
 

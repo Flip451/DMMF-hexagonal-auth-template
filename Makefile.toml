@@ -74,9 +74,9 @@ command = "docker"
 args = ["compose", "exec", "app", "cargo", "run"]
 
 [tasks.watch]
-description = "ホットリロード有効で実行"
+description = "ホットリロード有効で実行 (baconを使用)"
 command = "docker"
-args = ["compose", "exec", "app", "cargo", "watch", "-x", "run"]
+args = ["compose", "exec", "app", "bacon", "run", "--headless"]
 
 # CI/品質管理
 [tasks.fmt]
