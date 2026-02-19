@@ -44,7 +44,7 @@ services:
   sqlx-cli:
     build:
       context: .
-      target: dev
+      target: tools
     environment:
       DATABASE_URL: postgres://user:password@db:5432/myapp
     volumes:
