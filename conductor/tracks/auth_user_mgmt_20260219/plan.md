@@ -22,7 +22,7 @@
 - [x] **Task: UseCase 層の定義と実装** [28e0650]
   - [x] `AuthUseCase` トレイトの定義 (サインアップ、ログイン等のビジネスシナリオ)
   - [x] Transaction Manager と Domain Service を組み合わせたオーケストレーションの実装
-- [x] **Task: ユニットテストの記述** [983a890]
+- [x] **Task: ユニットテストの記述** [89f1957]
   - [x] ドメインモデルと不変条件のテスト
   - [x] UseCase 層のロジックテスト
 - [~] **Task: Conductor - User Manual Verification 'フェーズ 2: ドメイン層の構築 (DMMF)' (Protocol in workflow.md)**
