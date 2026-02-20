@@ -1,26 +1,33 @@
-use std::sync::Arc;
 use async_trait::async_trait;
 use crate::models::user::{Email, UserError, UserRepository};
 
 #[async_trait]
 pub trait UserUniquenessChecker: Send + Sync {
-    async fn check_email_uniqueness(&self, email: &Email) -> Result<(), UserError>;
+    /// 指定されたメールアドレスが既に使用されていないかチェックする。
+    /// トランザクション境界内のリポジトリを使用できるよう、引数で受け取る。
+    async fn check_email_uniqueness(
+        &self,
+        user_repository: &dyn UserRepository,
+        email: &Email,
+    ) -> Result<(), UserError>;
 }
 
-pub struct UserUniquenessCheckerImpl {
-    user_repository: Arc<dyn UserRepository>,
-}
+pub struct UserUniquenessCheckerImpl;
 
 impl UserUniquenessCheckerImpl {
-    pub fn new(user_repository: Arc<dyn UserRepository>) -> Self {
-        Self { user_repository }
+    pub fn new() -> Self {
+        Self
     }
 }
 
 #[async_trait]
 impl UserUniquenessChecker for UserUniquenessCheckerImpl {
-    async fn check_email_uniqueness(&self, email: &Email) -> Result<(), UserError> {
-        match self.user_repository.find_by_email(email).await? {
+    async fn check_email_uniqueness(
+        &self,
+        user_repository: &dyn UserRepository,
+        email: &Email,
+    ) -> Result<(), UserError> {
+        match user_repository.find_by_email(email).await? {
             Some(_) => Err(UserError::AlreadyExists),
             None => Ok(()),
         }
@@ -30,7 +37,7 @@ impl UserUniquenessChecker for UserUniquenessCheckerImpl {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::user::{User, UserId, PasswordHash};
+    use crate::models::user::{PasswordHash, User, UserId};
     use mockall::mock;
 
     mock! {
@@ -45,13 +52,12 @@ mod tests {
     #[tokio::test]
     async fn test_check_email_uniqueness_available() {
         let mut mock_repo = MockUserRepository::new();
-        mock_repo.expect_find_by_email()
-            .returning(|_| Ok(None));
-        
-        let checker = UserUniquenessCheckerImpl::new(Arc::new(mock_repo));
+        mock_repo.expect_find_by_email().returning(|_| Ok(None));
+
+        let checker = UserUniquenessCheckerImpl::new();
         let email = Email::try_from("test@example.com").unwrap();
-        
-        let result = checker.check_email_uniqueness(&email).await;
+
+        let result = checker.check_email_uniqueness(&mock_repo, &email).await;
         assert!(result.is_ok());
     }
 
@@ -64,13 +70,14 @@ mod tests {
             email: email.clone(),
             password_hash: PasswordHash::try_from("hash").unwrap(),
         };
-        
-        mock_repo.expect_find_by_email()
+
+        mock_repo
+            .expect_find_by_email()
             .returning(move |_| Ok(Some(user.clone())));
-        
-        let checker = UserUniquenessCheckerImpl::new(Arc::new(mock_repo));
-        let result = checker.check_email_uniqueness(&email).await;
-        
+
+        let checker = UserUniquenessCheckerImpl::new();
+        let result = checker.check_email_uniqueness(&mock_repo, &email).await;
+
         assert!(matches!(result, Err(UserError::AlreadyExists)));
     }
 }

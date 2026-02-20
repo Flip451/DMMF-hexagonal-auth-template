@@ -25,6 +25,7 @@ pub trait TransactionManager: Send + Sync {
         F: for<'a> FnOnce(&'a dyn RepositoryFactory) -> BoxFuture<'a, Result<T, E>> + Send;
 }
 
+// 便利なマクロはそのまま
 #[macro_export]
 macro_rules! tx {
     ($tm:expr, |$factory:ident| $body:expr) => {
