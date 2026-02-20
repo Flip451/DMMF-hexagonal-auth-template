@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-#[derive(Debug, Error)]
+#[derive(Debug, Clone, Error, PartialEq, Eq)]
 pub enum EmailError {
     #[error("Email is empty")]
     Empty,
@@ -8,7 +8,7 @@ pub enum EmailError {
     InvalidFormat,
 }
 
-#[derive(Debug, Error)]
+#[derive(Debug, Clone, Error, PartialEq, Eq)]
 pub enum PasswordError {
     #[error("Password is too short")]
     TooShort,
@@ -16,7 +16,7 @@ pub enum PasswordError {
     TooWeak,
 }
 
-#[derive(Debug, Error)]
+#[derive(Debug, Clone, Error)]
 pub enum UserError {
     #[error(transparent)]
     Email(#[from] EmailError),

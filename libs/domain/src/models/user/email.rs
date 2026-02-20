@@ -36,19 +36,17 @@ impl TryFrom<&str> for Email {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rstest::rstest;
 
-    #[test]
-    fn test_email_validation() {
-        let valid_email = "test@example.com";
-        let email = Email::try_from(valid_email).unwrap();
-        assert_eq!(email.to_string(), valid_email);
-
-        let invalid_email = "invalid-email";
-        let result = Email::try_from(invalid_email);
-        assert!(matches!(result, Err(EmailError::InvalidFormat)));
-
-        let empty_email = "";
-        let result = Email::try_from(empty_email);
-        assert!(matches!(result, Err(EmailError::Empty)));
+    #[rstest]
+    #[case("test@example.com", Ok("test@example.com"))]
+    #[case("", Err(EmailError::Empty))]
+    #[case("invalid-email", Err(EmailError::InvalidFormat))]
+    fn test_email_validation(#[case] input: &str, #[case] expected: Result<&str, EmailError>) {
+        let result = Email::try_from(input);
+        match expected {
+            Ok(val) => assert_eq!(result.unwrap().to_string(), val),
+            Err(e) => assert_eq!(result.unwrap_err(), e),
+        }
     }
 }

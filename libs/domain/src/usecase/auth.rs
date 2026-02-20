@@ -11,7 +11,7 @@ use crate::tx;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SignupCommand {
     pub email: Email,
-    pub password: String, // 生のパスワードを受け取る
+    pub password: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -67,13 +67,11 @@ where
         let checker = Arc::clone(&self.user_uniqueness_checker);
         let password_service = Arc::clone(&self.password_service);
 
-        // パスワードをハッシュ化
         let password_hash = password_service.hash(&command.password).await?;
 
         tx!(self.transaction_manager, |factory| {
             let user_repo = factory.user_repository();
 
-            // トランザクション境界内で一意性チェックを実行
             checker
                 .check_email_uniqueness(&*user_repo, &command.email)
                 .await?;
@@ -94,13 +92,6 @@ where
     async fn login(&self, command: LoginCommand) -> DomainResult<User> {
         let password_service = Arc::clone(&self.password_service);
 
-        // 1. ユーザーを検索（トランザクション不要な読み取り）
-        // Repositoryを直接使うか、Factory経由で取得するかは設計次第ですが、
-        // ここでは単純化のためFactoryの実装を想定するか、あるいは個別のRepo Portを受け取るようにします。
-        // ※ 本来は UseCase に UserRepository も持たせるのが一般的です。
-
-        // 今回は TransactionManager を通じて Repo にアクセスする方針に合わせ、
-        // 読み取り専用の execute (あるいは単発Repo利用) を想定します。
         tx!(self.transaction_manager, |factory| {
             let user_repo = factory.user_repository();
 
@@ -109,7 +100,6 @@ where
                 .await?
                 .ok_or(AuthError::InvalidCredentials)?;
 
-            // 2. パスワード検証
             let is_valid = password_service
                 .verify(&command.password, &user.password_hash)
                 .await?;
@@ -126,5 +116,121 @@ where
 
 #[cfg(test)]
 mod tests {
-    // ユニットテストは今後の課題
+    use super::*;
+    use crate::models::user::{PasswordHash, UserError, UserRepository};
+    use crate::repository::tx::{IntoTxError, RepositoryFactory};
+    use futures_util::future::BoxFuture;
+    use rstest::*;
+    use std::fmt::Debug;
+
+    // 手動スタブの定義（Mockallよりもライフタイムやジェネリクスに強い）
+
+    pub struct StubUserRepository {
+        pub user: Option<User>,
+    }
+    #[async_trait]
+    impl UserRepository for StubUserRepository {
+        async fn find_by_email(&self, _email: &Email) -> Result<Option<User>, UserError> {
+            Ok(self.user.clone())
+        }
+        async fn save(&self, _user: &User) -> Result<(), UserError> {
+            Ok(())
+        }
+    }
+
+    pub struct StubRepositoryFactory {
+        pub repo: Arc<StubUserRepository>,
+    }
+    impl RepositoryFactory for StubRepositoryFactory {
+        fn user_repository(&self) -> Arc<dyn UserRepository> {
+            self.repo.clone()
+        }
+    }
+
+    pub struct StubTransactionManager {
+        pub factory: Arc<StubRepositoryFactory>,
+    }
+    #[async_trait]
+    impl TransactionManager for StubTransactionManager {
+        async fn execute<T, E, F>(&self, f: F) -> Result<T, E>
+        where
+            T: Send,
+            E: IntoTxError + Debug + Send + Sync,
+            F: for<'a> FnOnce(&'a dyn RepositoryFactory) -> BoxFuture<'a, Result<T, E>> + Send,
+        {
+            f(&*self.factory).await
+        }
+    }
+
+    pub struct StubUserUniquenessChecker;
+    #[async_trait]
+    impl UserUniquenessChecker for StubUserUniquenessChecker {
+        async fn check_email_uniqueness(
+            &self,
+            _repo: &dyn UserRepository,
+            _email: &Email,
+        ) -> Result<(), UserError> {
+            Ok(())
+        }
+    }
+
+    pub struct StubPasswordService;
+    #[async_trait]
+    impl PasswordService for StubPasswordService {
+        async fn verify(&self, _pw: &str, _hash: &PasswordHash) -> Result<bool, AuthError> {
+            Ok(true)
+        }
+        async fn hash(&self, _pw: &str) -> Result<PasswordHash, AuthError> {
+            Ok(PasswordHash::try_from("hashed").unwrap())
+        }
+    }
+
+    #[fixture]
+    fn email() -> Email {
+        Email::try_from("test@example.com").unwrap()
+    }
+
+    #[rstest]
+    #[tokio::test]
+    async fn test_signup_success(email: Email) {
+        let repo = Arc::new(StubUserRepository { user: None });
+        let factory = Arc::new(StubRepositoryFactory { repo });
+        let tm = Arc::new(StubTransactionManager { factory });
+        let checker = Arc::new(StubUserUniquenessChecker);
+        let ps = Arc::new(StubPasswordService);
+
+        let usecase = AuthUseCaseImpl::new(tm, checker, ps);
+        let command = SignupCommand {
+            email: email.clone(),
+            password: "password".to_string(),
+        };
+
+        let result = usecase.signup(command).await;
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().email, email);
+    }
+
+    #[rstest]
+    #[tokio::test]
+    async fn test_login_success(email: Email) {
+        let user = User {
+            id: UserId::new(),
+            email: email.clone(),
+            password_hash: PasswordHash::try_from("hashed").unwrap(),
+        };
+        let repo = Arc::new(StubUserRepository { user: Some(user) });
+        let factory = Arc::new(StubRepositoryFactory { repo });
+        let tm = Arc::new(StubTransactionManager { factory });
+        let checker = Arc::new(StubUserUniquenessChecker);
+        let ps = Arc::new(StubPasswordService);
+
+        let usecase = AuthUseCaseImpl::new(tm, checker, ps);
+        let command = LoginCommand {
+            email,
+            password: "password".to_string(),
+        };
+
+        let result = usecase.login(command).await;
+        assert!(result.is_ok());
+    }
 }

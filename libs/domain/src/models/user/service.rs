@@ -4,7 +4,6 @@ use async_trait::async_trait;
 #[async_trait]
 pub trait UserUniquenessChecker: Send + Sync {
     /// 指定されたメールアドレスが既に使用されていないかチェックする。
-    /// トランザクション境界内のリポジトリを使用できるよう、引数で受け取る。
     async fn check_email_uniqueness(
         &self,
         user_repository: &dyn UserRepository,
@@ -39,6 +38,7 @@ mod tests {
     use super::*;
     use crate::models::user::{PasswordHash, User, UserId};
     use mockall::mock;
+    use rstest::*;
 
     mock! {
         pub UserRepository {}
@@ -49,35 +49,60 @@ mod tests {
         }
     }
 
+    // 内部的なテストでも、複雑な場合は手動スタブが確実です
+    pub struct StubUserRepository {
+        pub find_result: Result<Option<User>, UserError>,
+    }
+
+    #[async_trait]
+    impl UserRepository for StubUserRepository {
+        async fn find_by_email(&self, _email: &Email) -> Result<Option<User>, UserError> {
+            self.find_result.clone()
+        }
+        async fn save(&self, _user: &User) -> Result<(), UserError> {
+            Ok(())
+        }
+    }
+
+    #[fixture]
+    fn checker() -> UserUniquenessCheckerImpl {
+        UserUniquenessCheckerImpl::new()
+    }
+
+    #[fixture]
+    fn email() -> Email {
+        Email::try_from("test@example.com").unwrap()
+    }
+
+    #[rstest]
     #[tokio::test]
-    async fn test_check_email_uniqueness_available() {
-        let mut mock_repo = MockUserRepository::new();
-        mock_repo.expect_find_by_email().returning(|_| Ok(None));
-
-        let checker = UserUniquenessCheckerImpl::new();
-        let email = Email::try_from("test@example.com").unwrap();
-
-        let result = checker.check_email_uniqueness(&mock_repo, &email).await;
+    async fn test_check_email_uniqueness_available(
+        checker: UserUniquenessCheckerImpl,
+        email: Email,
+    ) {
+        let repo = StubUserRepository {
+            find_result: Ok(None),
+        };
+        let result = checker.check_email_uniqueness(&repo, &email).await;
         assert!(result.is_ok());
     }
 
+    #[rstest]
     #[tokio::test]
-    async fn test_check_email_uniqueness_already_exists() {
-        let mut mock_repo = MockUserRepository::new();
-        let email = Email::try_from("exists@example.com").unwrap();
+    async fn test_check_email_uniqueness_already_exists(
+        checker: UserUniquenessCheckerImpl,
+        email: Email,
+    ) {
         let user = User {
             id: UserId::new(),
             email: email.clone(),
             password_hash: PasswordHash::try_from("hash").unwrap(),
         };
+        let repo = StubUserRepository {
+            find_result: Ok(Some(user)),
+        };
 
-        mock_repo
-            .expect_find_by_email()
-            .returning(move |_| Ok(Some(user.clone())));
-
-        let checker = UserUniquenessCheckerImpl::new();
-        let result = checker.check_email_uniqueness(&mock_repo, &email).await;
-
+        let result = checker.check_email_uniqueness(&repo, &email).await;
         assert!(matches!(result, Err(UserError::AlreadyExists)));
     }
 }
