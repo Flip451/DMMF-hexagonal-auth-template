@@ -19,5 +19,10 @@
 - **モジュール境界:** `pub(crate)` を適切に使用し、モジュールのカプセル化を徹底します。
 
 ## エラーハンドリング
-- **独自エラー型:** 各ドメインごとに `thiserror` 等を用いて独自のエラー型を定義します。
+- **階層的なエラー定義:**
+  1. **Value Object Error:** 各値オブジェクト（`Email`, `Password` 等）ごとに専用のエラー型を定義します。
+  2. **Model/Context Error:** `UserError` や `AuthError` は、関連する Value Object のエラーを `#[error(transparent)]` で取り込みます。
+  3. **Domain Error:** 最上位の `DomainError` は、各コンテキストのエラーを `#[error(transparent)]` で集約します。
+- **構造化されたエラー:** エラーバリアントに `String` などの汎用的な型を持たせることを避け、失敗理由を明示した Enum を使用します（"Stringly-typed" の回避）。
+- **「内部エラー」の濫用禁止:** 汎用的な `Internal` エラーの定義を避け、代わりに `LogicViolation(&'static str)` 等を用いて、論理的な不整合であることを明示します。
 - **不変条件のチェック:** コンストラクタ（`new` メソッド）でドメインの不変条件を検証し、常に有効なオブジェクトのみが生成されるようにします。
