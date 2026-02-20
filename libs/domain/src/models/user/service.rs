@@ -37,19 +37,8 @@ impl UserUniquenessChecker for UserUniquenessCheckerImpl {
 mod tests {
     use super::*;
     use crate::models::user::{PasswordHash, User, UserId};
-    use mockall::mock;
     use rstest::*;
 
-    mock! {
-        pub UserRepository {}
-        #[async_trait]
-        impl UserRepository for UserRepository {
-            async fn find_by_email(&self, email: &Email) -> Result<Option<User>, UserError>;
-            async fn save(&self, user: &User) -> Result<(), UserError>;
-        }
-    }
-
-    // 内部的なテストでも、複雑な場合は手動スタブが確実です
     pub struct StubUserRepository {
         pub find_result: Result<Option<User>, UserError>,
     }
@@ -96,7 +85,7 @@ mod tests {
         let user = User {
             id: UserId::new(),
             email: email.clone(),
-            password_hash: PasswordHash::try_from("hash").unwrap(),
+            password_hash: PasswordHash::from_str_unchecked("hash"),
         };
         let repo = StubUserRepository {
             find_result: Ok(Some(user)),

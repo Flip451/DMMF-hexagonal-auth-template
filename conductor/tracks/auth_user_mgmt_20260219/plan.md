@@ -22,10 +22,10 @@
 - [x] **Task: UseCase 層の定義と実装** [28e0650]
   - [x] `AuthUseCase` トレイトの定義 (サインアップ、ログイン等のビジネスシナリオ)
   - [x] Transaction Manager と Domain Service を組み合わせたオーケストレーションの実装
-- [~] **Task: ユニットテストの記述**
-  - [ ] ドメインモデルと不変条件のテスト
-  - [ ] UseCase 層のロジックテスト
-- [ ] **Task: Conductor - User Manual Verification 'フェーズ 2: ドメイン層の構築 (DMMF)' (Protocol in workflow.md)**
+- [x] **Task: ユニットテストの記述** [983a890]
+  - [x] ドメインモデルと不変条件のテスト
+  - [x] UseCase 層のロジックテスト
+- [~] **Task: Conductor - User Manual Verification 'フェーズ 2: ドメイン層の構築 (DMMF)' (Protocol in workflow.md)**
 
 ### フェーズ 3: CQRS とボイラープレート削減のリファクタリング
 - [ ] **Task: CQRS パターンの導入**
@@ -49,10 +49,10 @@
 
 ### フェーズ 5: アプリケーション層と Web API (Axum)
 - [ ] **Task: Axum ハンドラーの実実装**
-  - [ ] サインアップ, ログイン, プロフィール取得エンドポイント의作成
+  - [ ] サインアップ, ログイン, プロフィール取得エンドポイントの作成
   - [ ] JWT 生成/検証ミドルウェアの実装
 - [ ] **Task: OpenAPI ドキュメントの設定**
   - [ ] utoipa を使用した Swagger 定義の追加
-- [ ] **Task: E2E テスト의 記述**
+- [ ] **Task: E2E テストの 記述**
   - [ ] API 全体の結合テスト
 - [ ] **Task: Conductor - User Manual Verification 'フェーズ 5: アプリケーション層と Web API (Axum)' (Protocol in workflow.md)**

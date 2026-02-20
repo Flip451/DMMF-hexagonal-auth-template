@@ -14,6 +14,8 @@ pub enum PasswordError {
     TooShort,
     #[error("Password lacks required characters")]
     TooWeak,
+    #[error("Invalid password hash format: {found}")]
+    InvalidFormat { found: String },
 }
 
 #[derive(Debug, Clone, Error)]

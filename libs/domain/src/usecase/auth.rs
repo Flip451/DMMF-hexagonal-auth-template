@@ -123,8 +123,6 @@ mod tests {
     use rstest::*;
     use std::fmt::Debug;
 
-    // 手動スタブの定義（Mockallよりもライフタイムやジェネリクスに強い）
-
     pub struct StubUserRepository {
         pub user: Option<User>,
     }
@@ -181,7 +179,7 @@ mod tests {
             Ok(true)
         }
         async fn hash(&self, _pw: &str) -> Result<PasswordHash, AuthError> {
-            Ok(PasswordHash::try_from("hashed").unwrap())
+            Ok(PasswordHash::from_str_unchecked("hashed"))
         }
     }
 
@@ -216,7 +214,7 @@ mod tests {
         let user = User {
             id: UserId::new(),
             email: email.clone(),
-            password_hash: PasswordHash::try_from("hashed").unwrap(),
+            password_hash: PasswordHash::from_str_unchecked("hashed"),
         };
         let repo = Arc::new(StubUserRepository { user: Some(user) });
         let factory = Arc::new(StubRepositoryFactory { repo });
