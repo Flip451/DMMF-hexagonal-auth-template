@@ -52,7 +52,6 @@ services:
       - cargo_cache:/usr/local/cargo/registry
       - cli_target_cache:/app/target
     profiles: ["tools"]
-    entrypoint: ["sqlx"]
     networks:
       - app-network
 

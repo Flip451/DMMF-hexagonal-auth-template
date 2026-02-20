@@ -61,11 +61,10 @@ COPY --from=tools-builder /usr/local/cargo/bin/cargo-make /usr/local/bin/
 COPY --from=tools-builder /usr/local/cargo/bin/sqlx /usr/local/bin/
 
 # 7. 運用ツール用ステージ (tools)
-FROM chef AS tools
+FROM builder-base AS tools
 COPY --from=tools-builder /usr/local/cargo/bin/sqlx /usr/local/bin/
 COPY --from=tools-builder /usr/local/cargo/bin/cargo-make /usr/local/bin/
 RUN rustup component add --toolchain ${RUST_VERSION} rustfmt clippy
-ENTRYPOINT ["cargo", "make"]
 
 # 8. 本番実行用 (runtime)
 FROM gcr.io/distroless/cc-debian12:nonroot AS runtime
