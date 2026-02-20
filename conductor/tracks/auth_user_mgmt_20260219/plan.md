@@ -12,7 +12,7 @@
 - [x] **Task: Conductor - User Manual Verification 'フェーズ 1: プロジェクト基盤とワークスペースの設定' (Protocol in workflow.md)** [cb6d41d]
 
 ### フェーズ 2: ドメイン層の構築 (DMMF)
-- [ ] **Task: ユーザーモデルの設計**
+- [~] **Task: ユーザーモデルの設計**
   - [ ] ユーザーID (UUID), メールアドレス, ハッシュ化パスワードの Newtype 作成
   - [ ] ドメイン不変条件のバリデーション実装
 - [ ] **Task: 認証ドメインロジックの実装**
