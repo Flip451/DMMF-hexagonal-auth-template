@@ -1,5 +1,5 @@
 use crate::models::auth::error::AuthError;
-use crate::models::user::error::UserError;
+use crate::models::user::error::{UserError, UserRepositoryError, UserUniquenessViolation};
 use crate::repository::tx::IntoTxError;
 use thiserror::Error;
 
@@ -18,6 +18,19 @@ pub enum DomainError {
     /// 論理的な不変条件の違反（バグ）
     #[error("Logic invariant violation: {0}")]
     LogicViolation(&'static str),
+}
+
+// 推移的な From 実装により、UseCase層での ? 演算子を使いやすくする
+impl From<UserUniquenessViolation> for DomainError {
+    fn from(error: UserUniquenessViolation) -> Self {
+        Self::User(UserError::from(error))
+    }
+}
+
+impl From<UserRepositoryError> for DomainError {
+    fn from(error: UserRepositoryError) -> Self {
+        Self::User(UserError::from(error))
+    }
 }
 
 impl IntoTxError for DomainError {

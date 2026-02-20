@@ -1,4 +1,5 @@
-use crate::models::user::{Email, UserError, UserRepository};
+use crate::models::user::error::UserUniquenessViolation;
+use crate::models::user::{Email, UserRepository};
 use async_trait::async_trait;
 
 #[async_trait]
@@ -8,7 +9,7 @@ pub trait UserUniquenessChecker: Send + Sync {
         &self,
         user_repository: &dyn UserRepository,
         email: &Email,
-    ) -> Result<(), UserError>;
+    ) -> Result<(), UserUniquenessViolation>;
 }
 
 pub struct UserUniquenessCheckerImpl;
@@ -19,16 +20,23 @@ impl UserUniquenessCheckerImpl {
     }
 }
 
+impl Default for UserUniquenessCheckerImpl {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[async_trait]
 impl UserUniquenessChecker for UserUniquenessCheckerImpl {
     async fn check_email_uniqueness(
         &self,
         user_repository: &dyn UserRepository,
         email: &Email,
-    ) -> Result<(), UserError> {
-        match user_repository.find_by_email(email).await? {
-            Some(_) => Err(UserError::AlreadyExists),
-            None => Ok(()),
+    ) -> Result<(), UserUniquenessViolation> {
+        match user_repository.find_by_email(email).await {
+            Ok(Some(_)) => Err(UserUniquenessViolation::EmailAlreadyExists(email.clone())),
+            Ok(None) => Ok(()),
+            Err(e) => Err(UserUniquenessViolation::Infrastructure(Box::new(e))),
         }
     }
 }
@@ -36,19 +44,19 @@ impl UserUniquenessChecker for UserUniquenessCheckerImpl {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::user::{PasswordHash, User, UserId};
+    use crate::models::user::{PasswordHash, User, UserId, UserRepositoryError};
     use rstest::*;
 
     pub struct StubUserRepository {
-        pub find_result: Result<Option<User>, UserError>,
+        pub find_result: Result<Option<User>, UserRepositoryError>,
     }
 
     #[async_trait]
     impl UserRepository for StubUserRepository {
-        async fn find_by_email(&self, _email: &Email) -> Result<Option<User>, UserError> {
+        async fn find_by_email(&self, _email: &Email) -> Result<Option<User>, UserRepositoryError> {
             self.find_result.clone()
         }
-        async fn save(&self, _user: &User) -> Result<(), UserError> {
+        async fn save(&self, _user: &User) -> Result<(), UserRepositoryError> {
             Ok(())
         }
     }
@@ -92,6 +100,9 @@ mod tests {
         };
 
         let result = checker.check_email_uniqueness(&repo, &email).await;
-        assert!(matches!(result, Err(UserError::AlreadyExists)));
+        assert!(matches!(
+            result,
+            Err(UserUniquenessViolation::EmailAlreadyExists(_))
+        ));
     }
 }
