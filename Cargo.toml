@@ -9,7 +9,7 @@ resolver = "2"
 
 [workspace.dependencies]
 # Async
-tokio = { version = "1", features = ["full"] }
+tokio = { version = "1.49", features = ["rt-multi-thread", "macros", "net", "time", "signal"] }
 async-trait = "0.1"
 futures-util = "0.3"
 
@@ -28,18 +28,18 @@ sqlx = { version = "0.8", features = ["runtime-tokio", "postgres", "uuid", "chro
 
 # Security
 argon2 = "0.5"
-jsonwebtoken = "9"
+jsonwebtoken = "10"
 
 # Observability
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-tracing-opentelemetry = "0.28"
-opentelemetry = "0.27"
-opentelemetry_sdk = { version = "0.27", features = ["rt-tokio"] }
-opentelemetry-otlp = "0.27"
+tracing-opentelemetry = "0.32"
+opentelemetry = "0.31"
+opentelemetry_sdk = { version = "0.31", features = ["rt-tokio"] }
+opentelemetry-otlp = "0.31"
 
 # Utility
-derive_more = { version = "2", features = ["full"] }
+derive_more = { version = "2", features = ["display", "from", "as_ref", "into", "try_into", "error"] }
 uuid = { version = "1", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 config = "0.15"
