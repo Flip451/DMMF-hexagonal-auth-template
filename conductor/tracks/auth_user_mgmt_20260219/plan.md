@@ -11,7 +11,7 @@
   - [x] ロギング/トレース (tracing, opentelemetry) の初期化コード
 - [x] **Task: Conductor - User Manual Verification 'フェーズ 1: プロジェクト基盤とワークスペースの設定' (Protocol in workflow.md)** [cb6d41d]
 
-### フェーズ 2: ドメイン層の構築 (DMMF)
+### フェーズ 2: ドメイン層の構築 (DMMF) [checkpoint: e7a5b49]
 - [x] **Task: ユーザーモデルの設計** [23dbe1a]
   - [x] ユーザーID (UUID), メールアドレス, ハッシュ化パスワードの Newtype 作成
   - [x] ドメイン不変条件のバリデーション実装
@@ -25,7 +25,7 @@
 - [x] **Task: ユニットテストの記述** [0695d91]
   - [x] ドメインモデルと不変条件のテスト
   - [x] UseCase 層のロジックテスト
-- [~] **Task: Conductor - User Manual Verification 'フェーズ 2: ドメイン層の構築 (DMMF)' (Protocol in workflow.md)**
+- [x] **Task: Conductor - User Manual Verification 'フェーズ 2: ドメイン層の構築 (DMMF)' (Protocol in workflow.md)** [d082bf3]
 
 ### フェーズ 3: CQRS とボイラープレート削減のリファクタリング
 - [ ] **Task: CQRS パターンの導入**
