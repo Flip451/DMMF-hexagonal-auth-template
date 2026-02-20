@@ -43,3 +43,4 @@ derive_more = { version = "2", features = ["display", "from", "as_ref", "into", 
 uuid = { version = "1", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 config = "0.15"
+mockall = "0.13"
