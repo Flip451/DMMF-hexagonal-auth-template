@@ -1,5 +1,6 @@
 [config]
 skip_core_tasks = true
+default_to_workspace = false
 
 [env]
 DOCKER_BUILDKIT = "1"
@@ -15,17 +16,17 @@ args = ["make", "--list-all-steps"]
 [tasks.build]
 description = "Docker イメージのビルド"
 command = "docker"
-args = ["compose", "build"]
+args = ["compose", "--profile", "tools", "build"]
 
 [tasks.up]
 description = "コンテナの起動"
 command = "docker"
-args = ["compose", "up", "-d"]
+args = ["compose", "--profile", "tools", "up", "-d"]
 
 [tasks.down]
 description = "コンテナの停止"
 command = "docker"
-args = ["compose", "down"]
+args = ["compose", "--profile", "tools", "down"]
 
 [tasks.restart]
 description = "コンテナの再起動"
@@ -39,35 +40,35 @@ args = ["compose", "logs", "-f", "app"]
 [tasks.ps]
 description = "コンテナの状態確認"
 command = "docker"
-args = ["compose", "ps"]
+args = ["compose", "--profile", "tools", "ps"]
 
 [tasks.shell]
-description = "appコンテナにシェルで入る"
+description = "ツールコンテナにシェルで入る"
 command = "docker"
-args = ["compose", "run", "--rm", "app", "bash"]
+args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "bash"]
 
 # SQLx 操作
 [tasks.migrate-add]
 description = "新規マイグレーション作成 (使用例: cargo make migrate-add create_users)"
 command = "docker"
-args = ["compose", "run", "--rm", "sqlx-cli", "migrate", "add", "${@}"]
+args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "sqlx", "migrate", "add", "${@}"]
 
 [tasks.migrate-run]
 description = "マイグレーションの実行"
 command = "docker"
-args = ["compose", "run", "--rm", "sqlx-cli", "migrate", "run"]
+args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "sqlx", "migrate", "run"]
 
 [tasks.migrate-revert]
 description = "マイグレーションのロールバック"
 command = "docker"
-args = ["compose", "run", "--rm", "sqlx-cli", "migrate", "revert"]
+args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "sqlx", "migrate", "revert"]
 
 [tasks.sqlx-prepare]
 description = "SQLx のオフライン用データを生成 (.sqlx/ フォルダ)"
 command = "docker"
-args = ["compose", "run", "--rm", "app", "cargo", "sqlx", "prepare", "--", "--all-targets", "--all-features"]
+args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "cargo", "sqlx", "prepare", "--", "--all-targets", "--all-features"]
 
-# アプリケーション操作
+# アプリケーション操作 (appコンテナを使用)
 [tasks.run]
 description = "アプリケーションの実行"
 command = "docker"
@@ -78,26 +79,26 @@ description = "ホットリロード有効で実行 (baconを使用)"
 command = "docker"
 args = ["compose", "exec", "app", "bacon", "run", "--headless"]
 
-# CI/品質管理
+# CI/品質管理 (sqlx-cliコンテナを使用)
 [tasks.fmt]
 description = "コードのフォーマット"
 command = "docker"
-args = ["compose", "run", "--rm", "app", "cargo", "fmt", "--all"]
+args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "cargo", "fmt", "--all"]
 
 [tasks.clippy]
 description = "静的解析"
 command = "docker"
-args = ["compose", "run", "--rm", "app", "cargo", "clippy", "--all-targets", "--all-features", "--", "-D", "warnings"]
+args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "cargo", "clippy", "--all-targets", "--all-features", "--", "-D", "warnings"]
 
 [tasks.test]
 description = "テストの実行"
 command = "docker"
-args = ["compose", "run", "--rm", "app", "cargo", "test", "--workspace"]
+args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "cargo", "test", "--workspace"]
 
 [tasks.check]
 description = "ビルドチェック"
 command = "docker"
-args = ["compose", "run", "--rm", "app", "cargo", "check", "--workspace", "--all-features"]
+args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "cargo", "check", "--workspace", "--all-features"]
 
 [tasks.ci]
 description = "CI 統合チェック (fmt, clippy, test, check)"
@@ -106,4 +107,4 @@ dependencies = ["fmt", "clippy", "test", "check"]
 [tasks.clean]
 description = "クリーンアップ"
 command = "docker"
-args = ["compose", "down", "--volumes", "--remove-orphans"]
+args = ["compose", "--profile", "tools", "down", "--volumes", "--remove-orphans"]
