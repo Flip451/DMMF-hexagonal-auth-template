@@ -20,13 +20,13 @@ pub enum PasswordError {
 pub enum UserError {
     #[error(transparent)]
     Email(#[from] EmailError),
-    
+
     #[error(transparent)]
     Password(#[from] PasswordError),
-    
+
     #[error("User not found")]
     NotFound,
-    
+
     #[error("User already exists")]
     AlreadyExists,
 }

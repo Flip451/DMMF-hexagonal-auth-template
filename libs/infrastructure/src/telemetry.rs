@@ -9,12 +9,12 @@ pub fn init_telemetry(service_name: &str) {
 
     // 現時点では標準出力へのロギングのみ構成
     // 将来的に OTLP エクスポータなどを追加する
-    
+
     tracing_subscriber::registry()
         .with(env_filter)
         .with(formatting_layer)
         .init();
-    
+
     tracing::info!("Telemetry initialized for service: {}", service_name);
 }
 

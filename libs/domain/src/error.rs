@@ -1,16 +1,16 @@
-use thiserror::Error;
-use crate::models::user::error::UserError;
 use crate::models::auth::error::AuthError;
+use crate::models::user::error::UserError;
 use crate::repository::tx::IntoTxError;
+use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum DomainError {
     #[error(transparent)]
     User(#[from] UserError),
-    
+
     #[error(transparent)]
     Auth(#[from] AuthError),
-    
+
     /// インフラ層の技術的失敗
     #[error("Infrastructure failure: {0}")]
     Infrastructure(#[from] anyhow::Error),
