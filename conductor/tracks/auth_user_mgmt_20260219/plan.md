@@ -19,10 +19,10 @@
   - [x] 認証サービスのトレイト (Port) 定義
   - [x] ドメインエラーの定義
   - [x] ユーザー一意性検証サービス (UserUniquenessChecker) の実装
-- [~] **Task: UseCase 層の定義と実装**
-  - [ ] `AuthUseCase` トレイトの定義 (サインアップ、ログイン等のビジネスシナリオ)
-  - [ ] Transaction Manager と Domain Service を組み合わせたオーケストレーションの実装
-- [ ] **Task: ユニットテストの記述**
+- [x] **Task: UseCase 層の定義と実装** [28e0650]
+  - [x] `AuthUseCase` トレイトの定義 (サインアップ、ログイン等のビジネスシナリオ)
+  - [x] Transaction Manager と Domain Service を組み合わせたオーケストレーションの実装
+- [~] **Task: ユニットテストの記述**
   - [ ] ドメインモデルと不変条件のテスト
   - [ ] UseCase 層のロジックテスト
 - [ ] **Task: Conductor - User Manual Verification 'フェーズ 2: ドメイン層の構築 (DMMF)' (Protocol in workflow.md)**
