@@ -15,10 +15,10 @@
 - [x] **Task: ユーザーモデルの設計** [23dbe1a]
   - [x] ユーザーID (UUID), メールアドレス, ハッシュ化パスワードの Newtype 作成
   - [x] ドメイン不変条件のバリデーション実装
-- [~] **Task: 認証ドメインロジックの実装**
-  - [ ] 認証サービスのトレイト (Port) 定義
-  - [ ] ドメインエラーの定義
-  - [ ] ユーザー一意性検証サービス (UserUniquenessChecker) の実装
+- [x] **Task: 認証ドメインロジックの実装** [d59f1f5]
+  - [x] 認証サービスのトレイト (Port) 定義
+  - [x] ドメインエラーの定義
+  - [x] ユーザー一意性検証サービス (UserUniquenessChecker) の実装
 - [ ] **Task: UseCase 層の定義と実装**
   - [ ] `AuthUseCase` トレイトの定義 (サインアップ、ログイン等のビジネスシナリオ)
   - [ ] Transaction Manager と Domain Service を組み合わせたオーケストレーションの実装
