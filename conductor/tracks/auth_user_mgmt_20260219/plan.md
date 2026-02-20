@@ -2,7 +2,7 @@
 
 ## 開発フェーズ
 
-### フェーズ 1: プロジェクト基盤とワークスペースの設定
+### フェーズ 1: プロジェクト基盤とワークスペースの設定 [checkpoint: 6cdf9fb]
 - [x] **Task: Rust ワークスペースの初期化** [78ad417]
   - [x] `Cargo.toml` (workspace) の作成
   - [x] `libs/domain`, `libs/infrastructure`, `apps/api`, `migration` クレートの雛形作成
