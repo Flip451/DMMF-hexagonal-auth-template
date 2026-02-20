@@ -1,5 +1,16 @@
 use derive_more::{AsRef, Display};
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
+
+#[derive(Debug, Clone, Error, PartialEq, Eq)]
+pub enum PasswordError {
+    #[error("Password is too short")]
+    TooShort,
+    #[error("Password lacks required characters")]
+    TooWeak,
+    #[error("Invalid password hash format: {found}")]
+    InvalidFormat { found: String },
+}
 
 /// ハッシュ化済みのパスワードを表現する値オブジェクト。
 ///

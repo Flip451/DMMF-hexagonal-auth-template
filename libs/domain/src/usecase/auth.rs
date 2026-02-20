@@ -117,8 +117,9 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::user::error::UserUniquenessViolation;
-    use crate::models::user::{PasswordHash, UserRepository, UserRepositoryError};
+    use crate::models::user::{
+        PasswordHash, UserRepository, UserRepositoryError, UserUniquenessViolation,
+    };
     use crate::repository::tx::{IntoTxError, RepositoryFactory};
     use futures_util::future::BoxFuture;
     use rstest::*;

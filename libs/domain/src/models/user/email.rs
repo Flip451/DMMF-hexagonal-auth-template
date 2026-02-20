@@ -1,6 +1,14 @@
-use crate::models::user::error::EmailError;
 use derive_more::{AsRef, Display};
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
+
+#[derive(Debug, Clone, Error, PartialEq, Eq)]
+pub enum EmailError {
+    #[error("Email is empty")]
+    Empty,
+    #[error("Email format is invalid")]
+    InvalidFormat,
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Display, AsRef)]
 pub struct Email(String);

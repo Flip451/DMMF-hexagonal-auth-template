@@ -1,5 +1,5 @@
 use crate::models::auth::error::AuthError;
-use crate::models::user::error::{UserError, UserRepositoryError, UserUniquenessViolation};
+use crate::models::user::{UserError, UserRepositoryError, UserUniquenessViolation};
 use crate::repository::tx::IntoTxError;
 use thiserror::Error;
 

@@ -1,6 +1,15 @@
-use crate::models::user::error::UserUniquenessViolation;
-use crate::models::user::{Email, UserRepository};
+use crate::models::user::{Email, UserRepository, UserRepositoryError};
 use async_trait::async_trait;
+use thiserror::Error;
+
+#[derive(Debug, Clone, Error, PartialEq, Eq)]
+pub enum UserUniquenessViolation {
+    #[error("Email already exists: {0}")]
+    EmailAlreadyExists(Email),
+
+    #[error("Infrastructure failure during uniqueness check: {0}")]
+    Infrastructure(#[from] Box<UserRepositoryError>),
+}
 
 #[async_trait]
 pub trait UserUniquenessChecker: Send + Sync {
@@ -44,7 +53,7 @@ impl UserUniquenessChecker for UserUniquenessCheckerImpl {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::user::{PasswordHash, User, UserId, UserRepositoryError};
+    use crate::models::user::{PasswordHash, User, UserId};
     use rstest::*;
 
     pub struct StubUserRepository {
