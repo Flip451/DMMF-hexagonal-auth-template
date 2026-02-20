@@ -6,10 +6,10 @@
 - [x] **Task: Rust ワークスペースの初期化** [78ad417]
   - [x] `Cargo.toml` (workspace) の作成
   - [x] `libs/domain`, `libs/infrastructure`, `apps/api`, `migration` クレートの雛形作成
-- [x] **Task: 共通ユーティリティの設定** [a1d8063]
+- [x] **Task: 共通ユーティリティの設定** [d43b594]
   - [x] エラーハンドリング (thiserror, anyhow)
   - [x] ロギング/トレース (tracing, opentelemetry) の初期化コード
-- [ ] **Task: Conductor - User Manual Verification 'フェーズ 1: プロジェクト基盤とワークスペースの設定' (Protocol in workflow.md)**
+- [x] **Task: Conductor - User Manual Verification 'フェーズ 1: プロジェクト基盤とワークスペースの設定' (Protocol in workflow.md)** [cb6d41d]
 
 ### フェーズ 2: ドメイン層の構築 (DMMF)
 - [ ] **Task: ユーザーモデルの設計**
