@@ -1,14 +1,14 @@
 pub mod email;
 pub mod error;
 pub mod password_hash;
-pub mod user_id;
 pub mod service;
+pub mod user_id;
 
 pub use email::Email;
 pub use error::{EmailError, PasswordError, UserError};
 pub use password_hash::PasswordHash;
-pub use user_id::UserId;
 pub use service::UserUniquenessChecker;
+pub use user_id::UserId;
 
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};

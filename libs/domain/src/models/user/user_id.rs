@@ -2,7 +2,9 @@ use derive_more::{AsRef, Display, From, Into};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, From, Into, AsRef, Display)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, From, Into, AsRef, Display,
+)]
 pub struct UserId(Uuid);
 
 impl UserId {

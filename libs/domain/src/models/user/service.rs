@@ -1,5 +1,5 @@
-use async_trait::async_trait;
 use crate::models::user::{Email, UserError, UserRepository};
+use async_trait::async_trait;
 
 #[async_trait]
 pub trait UserUniquenessChecker: Send + Sync {
