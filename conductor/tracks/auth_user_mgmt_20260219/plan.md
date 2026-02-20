@@ -3,7 +3,7 @@
 ## 開発フェーズ
 
 ### フェーズ 1: プロジェクト基盤とワークスペースの設定
-- [ ] **Task: Rust ワークスペースの初期化**
+- [~] **Task: Rust ワークスペースの初期化**
   - [ ] `Cargo.toml` (workspace) の作成
   - [ ] `libs/domain`, `libs/infrastructure`, `apps/api`, `migration` クレートの雛形作成
 - [ ] **Task: 共通ユーティリティの設定**
