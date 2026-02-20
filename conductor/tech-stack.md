@@ -9,7 +9,10 @@
 - **API ドキュメント:** utoipa (OpenAPI/Swagger ドキュメントの自動生成)
 
 ## ドメイン・ロジック (Core)
+- **アーキテクチャパターン:** CQRS (Command Query Responsibility Segregation) による責務分離。
 - **ドメインモデリング:** Rust の Enum と Struct を用いた強力な型システムによる DMMF 実装。
+- **UseCase 層:** Command/Query ハンドラーとして実装し、ビジネスプロセスをオーケストレーション。
+- **トランザクション管理:** RepositoryFactory パターンと `tx!` マクロによる一貫性制御。
 - **データ検証:** 独自のバリデーションロジックまたは `validator` クレート。
 
 ## 永続化レイヤー (Adapters)
@@ -25,5 +28,6 @@
 - **ロギング・トレーシング:** `tracing` クレートおよび `tracing-opentelemetry`
 
 ## ユーティリティ
+- **ボイラープレート削減:** `derive_more` (Display, From, AsRef 等の自動実装)
 - **設定管理:** `config` クレート (環境変数や YAML からの設定読み込み)
 - **タスクランナー:** `cargo-make` (クロスプラットフォームなタスク自動化)
