@@ -1,9 +1,9 @@
 use domain::usecase::auth::login::dto::LoginResponseDTO;
-use serde::Serialize;
-use utoipa::ToSchema;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Serialize, ToSchema)]
+#[derive(Serialize, Deserialize)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub struct LoginResponse {
     /// ユーザーID (UUID)
     pub id: Uuid,

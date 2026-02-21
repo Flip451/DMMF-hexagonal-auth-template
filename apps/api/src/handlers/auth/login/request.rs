@@ -1,8 +1,8 @@
 use domain::usecase::auth::login::query::LoginQuery;
 use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
 
-#[derive(Serialize, Deserialize, ToSchema)]
+#[derive(Serialize, Deserialize)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub struct LoginRequest {
     /// メールアドレス
     pub email: String,

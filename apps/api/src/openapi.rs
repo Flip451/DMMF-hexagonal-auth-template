@@ -1,6 +1,9 @@
+#[cfg(feature = "openapi")]
 use crate::handlers;
+#[cfg(feature = "openapi")]
 use utoipa::OpenApi;
 
+#[cfg(feature = "openapi")]
 #[derive(OpenApi)]
 #[openapi(
     paths(
@@ -24,8 +27,10 @@ use utoipa::OpenApi;
 )]
 pub struct ApiDoc;
 
+#[cfg(feature = "openapi")]
 struct SecurityAddon;
 
+#[cfg(feature = "openapi")]
 impl utoipa::Modify for SecurityAddon {
     fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
         if let Some(components) = openapi.components.as_mut() {

@@ -9,7 +9,7 @@ use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 use domain::usecase::auth::AuthQueryUseCase;
 use std::sync::Arc;
 
-#[utoipa::path(
+#[cfg_attr(feature = "openapi", utoipa::path(
     post,
     path = "/api/v1/auth/login",
     request_body = LoginRequest,
@@ -18,7 +18,7 @@ use std::sync::Arc;
         (status = 401, description = "Invalid credentials")
     ),
     tag = "auth"
-)]
+))]
 pub async fn login(
     State(state): State<Arc<AppState>>,
     Json(req): Json<LoginRequest>,

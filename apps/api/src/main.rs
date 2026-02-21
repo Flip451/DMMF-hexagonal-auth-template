@@ -13,15 +13,13 @@ use std::env;
 use std::sync::Arc;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-use utoipa::OpenApi;
-use utoipa_swagger_ui::SwaggerUi;
 
 mod error;
 mod handlers;
 pub mod middleware;
 mod openapi;
-
-use crate::openapi::ApiDoc;
+#[cfg(test)]
+pub mod tests;
 
 pub struct AppState {
     pub auth_command: Arc<
@@ -80,8 +78,18 @@ async fn main() -> anyhow::Result<()> {
     });
 
     // Router
-    let app = Router::new()
-        .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
+    let app = Router::new();
+
+    #[cfg(feature = "openapi")]
+    let app = {
+        use utoipa::OpenApi;
+        app.merge(
+            utoipa_swagger_ui::SwaggerUi::new("/swagger-ui")
+                .url("/api-docs/openapi.json", openapi::ApiDoc::openapi()),
+        )
+    };
+
+    let app = app
         .route("/api/v1/auth/signup", post(handlers::auth::signup::signup))
         .route("/api/v1/auth/login", post(handlers::auth::login::login))
         .route("/api/v1/users/me", get(handlers::users::me::me))

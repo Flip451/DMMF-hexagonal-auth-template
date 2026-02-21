@@ -1,8 +1,8 @@
 use domain::usecase::auth::signup::command::SignupCommand;
 use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
 
-#[derive(Serialize, Deserialize, ToSchema)]
+#[derive(Serialize, Deserialize)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub struct SignupRequest {
     /// メールアドレス
     pub email: String,

@@ -3,6 +3,10 @@ name = "api"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+default = ["openapi"]
+openapi = ["dep:utoipa", "dep:utoipa-swagger-ui"]
+
 [dependencies]
 domain = { path = "../../libs/domain" }
 infrastructure = { path = "../../libs/infrastructure" }
@@ -11,8 +15,8 @@ axum = { workspace = true }
 async-trait = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-utoipa = { workspace = true }
-utoipa-swagger-ui = { workspace = true }
+utoipa = { workspace = true, optional = true }
+utoipa-swagger-ui = { workspace = true, optional = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 tracing-opentelemetry = { workspace = true }
@@ -24,3 +28,11 @@ config = { workspace = true }
 tower-http = { workspace = true }
 sqlx = { workspace = true }
 uuid = { workspace = true }
+
+[dev-dependencies]
+tower = { workspace = true }
+http = { workspace = true }
+mime = { workspace = true }
+rstest = { workspace = true }
+# E2Eテストでは openapi フィーチャーが有効であることを前提とする場合が多いですが、
+# 必要に応じて個別に設定します。

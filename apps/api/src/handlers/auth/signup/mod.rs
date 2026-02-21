@@ -7,7 +7,7 @@ use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 use domain::usecase::auth::AuthCommandUseCase;
 use std::sync::Arc;
 
-#[utoipa::path(
+#[cfg_attr(feature = "openapi", utoipa::path(
     post,
     path = "/api/v1/auth/signup",
     request_body = SignupRequest,
@@ -17,7 +17,7 @@ use std::sync::Arc;
         (status = 409, description = "User already exists")
     ),
     tag = "auth"
-)]
+))]
 pub async fn signup(
     State(state): State<Arc<AppState>>,
     Json(req): Json<SignupRequest>,

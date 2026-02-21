@@ -67,8 +67,8 @@
   - [x] tracing を利用したログ出力の強化
   - [ ] プロフィール取得エンドポイントの作成
   - [ ] JWT 生成/検証ミドルウェアの実装
-- [~] **Task: OpenAPI ドキュメントの設定**
-  - [ ] utoipa を使用した Swagger 定義の追加
+- [x] **Task: OpenAPI ドキュメントの設定** [2c5755e]
+  - [x] utoipa を使用した Swagger 定義の追加
 - [ ] **Task: E2E テストの 記述**
   - [ ] API 全体の結合テスト
 - [ ] **Task: Conductor - User Manual Verification 'フェーズ 5: アプリケーション層と Web API (Axum)' (Protocol in workflow.md)**

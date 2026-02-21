@@ -1,7 +1,7 @@
-use serde::Serialize;
-use utoipa::ToSchema;
+use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, ToSchema)]
+#[derive(Serialize, Deserialize)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub struct MeResponse {
     /// ユーザーID
     pub user_id: String,

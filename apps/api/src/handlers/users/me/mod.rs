@@ -4,7 +4,7 @@ use self::response::MeResponse;
 use crate::middleware::auth::AuthenticatedUser;
 use axum::Json;
 
-#[utoipa::path(
+#[cfg_attr(feature = "openapi", utoipa::path(
     get,
     path = "/api/v1/users/me",
     responses(
@@ -15,7 +15,7 @@ use axum::Json;
         ("bearer_auth" = [])
     ),
     tag = "users"
-)]
+))]
 pub async fn me(AuthenticatedUser(claims): AuthenticatedUser) -> Json<MeResponse> {
     Json(MeResponse {
         user_id: claims.sub.to_string(),
