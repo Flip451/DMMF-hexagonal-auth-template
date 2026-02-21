@@ -2,10 +2,10 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-use crate::error::DomainResult;
 use crate::models::auth::PasswordService;
 use crate::models::user::{Email, User, UserId, UserUniquenessChecker};
 use crate::repository::tx::TransactionManager;
+use crate::usecase::error::UseCaseResult;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SignupCommand {
@@ -15,7 +15,7 @@ pub struct SignupCommand {
 
 #[async_trait]
 pub trait AuthCommandUseCase: Send + Sync {
-    async fn signup(&self, command: SignupCommand) -> DomainResult<User>;
+    async fn signup(&self, command: SignupCommand) -> UseCaseResult<User>;
 }
 
 pub struct AuthCommandUseCaseImpl<TM, UC, PS>
@@ -55,13 +55,13 @@ where
     UC: UserUniquenessChecker + 'static,
     PS: PasswordService + 'static,
 {
-    async fn signup(&self, command: SignupCommand) -> DomainResult<User> {
+    async fn signup(&self, command: SignupCommand) -> UseCaseResult<User> {
         let checker = Arc::clone(&self.user_uniqueness_checker);
         let password_service = Arc::clone(&self.password_service);
 
         let password_hash = password_service.hash(&command.password).await?;
 
-        crate::tx!(self.transaction_manager, |factory| {
+        let user = crate::tx!(self.transaction_manager, |factory| {
             let user_repo = factory.user_repository();
 
             checker
@@ -72,9 +72,11 @@ where
 
             user_repo.save(&user).await?;
 
-            Ok(user)
+            Ok::<User, crate::error::DomainError>(user)
         })
-        .await
+        .await?;
+
+        Ok(user)
     }
 }
 
@@ -83,6 +85,7 @@ mod tests {
     use super::*;
     use crate::models::user::{UserIdentity, UserUniquenessViolation};
     use crate::usecase::auth::test_utils::utils::*;
+    use crate::usecase::error::UseCaseError;
     use rstest::*;
 
     #[rstest]
@@ -147,13 +150,6 @@ mod tests {
         };
 
         let result = usecase.signup(command).await;
-        assert!(matches!(
-            result,
-            Err(crate::error::DomainError::User(
-                crate::models::user::error::UserError::Uniqueness(
-                    UserUniquenessViolation::EmailAlreadyExists(_)
-                )
-            ))
-        ));
+        assert!(matches!(result, Err(UseCaseError::Conflict(_))));
     }
 }

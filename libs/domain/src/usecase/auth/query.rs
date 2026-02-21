@@ -2,10 +2,10 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-use crate::error::DomainResult;
 use crate::models::auth::{AuthError, PasswordService};
 use crate::models::user::{Authenticatable, Email, User};
 use crate::repository::tx::TransactionManager;
+use crate::usecase::error::UseCaseResult;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LoginQuery {
@@ -15,7 +15,7 @@ pub struct LoginQuery {
 
 #[async_trait]
 pub trait AuthQueryUseCase: Send + Sync {
-    async fn login(&self, query: LoginQuery) -> DomainResult<User>;
+    async fn login(&self, query: LoginQuery) -> UseCaseResult<User>;
 }
 
 pub struct AuthQueryUseCaseImpl<TM, PS>
@@ -46,10 +46,10 @@ where
     TM: TransactionManager,
     PS: PasswordService + 'static,
 {
-    async fn login(&self, query: LoginQuery) -> DomainResult<User> {
+    async fn login(&self, query: LoginQuery) -> UseCaseResult<User> {
         let password_service = Arc::clone(&self.password_service);
 
-        crate::tx!(self.transaction_manager, |factory| {
+        let user = crate::tx!(self.transaction_manager, |factory| {
             let user_repo = factory.user_repository();
 
             let user = user_repo
@@ -65,9 +65,11 @@ where
                 return Err(AuthError::InvalidCredentials.into());
             }
 
-            Ok(user)
+            Ok::<User, crate::error::DomainError>(user)
         })
-        .await
+        .await?;
+
+        Ok(user)
     }
 }
 
@@ -76,6 +78,7 @@ mod tests {
     use super::*;
     use crate::models::user::UserId;
     use crate::usecase::auth::test_utils::utils::*;
+    use crate::usecase::error::UseCaseError;
     use rstest::*;
 
     #[rstest]
@@ -140,11 +143,6 @@ mod tests {
             })
             .await;
 
-        assert!(matches!(
-            result,
-            Err(crate::error::DomainError::Auth(
-                AuthError::InvalidCredentials
-            ))
-        ));
+        assert!(matches!(result, Err(UseCaseError::Authentication(_))));
     }
 }

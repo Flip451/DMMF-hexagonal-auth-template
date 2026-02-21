@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use domain::models::user::{
     Authenticatable, Email, PasswordHash, User, UserId, UserIdentity, UserRepositoryError,
 };
-use sqlx::{query, query_as, Postgres};
+use sqlx::{Postgres, query, query_as};
 use uuid::Uuid;
 
 /// SQLx を使用したユーザーリポジトリの低レベル操作。
@@ -97,8 +97,8 @@ impl TryFrom<UserRow> for User {
     type Error = UserRepositoryError;
 
     fn try_from(row: UserRow) -> Result<Self, Self::Error> {
-        let email = Email::try_from(row.email)
-            .map_err(|e| UserRepositoryError::MappingFailed(e.into()))?;
+        let email =
+            Email::try_from(row.email).map_err(|e| UserRepositoryError::MappingFailed(e.into()))?;
 
         Ok(User::new(
             UserId::from(row.id),
