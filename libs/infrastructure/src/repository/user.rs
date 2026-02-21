@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use domain::models::user::{
     Authenticatable, Email, PasswordHash, User, UserId, UserIdentity, UserRepositoryError,
 };
-use sqlx::{Postgres, query, query_as};
+use sqlx::{query, query_as, Postgres};
 use uuid::Uuid;
 
 /// SQLx を使用したユーザーリポジトリの低レベル操作。
@@ -22,7 +22,10 @@ impl SqlxUserRepository {
             .await
             .map_err(|e| UserRepositoryError::QueryFailed(e.into()))?;
 
-        Ok(row.map(User::from))
+        match row {
+            Some(row) => Ok(Some(User::try_from(row)?)),
+            None => Ok(None),
+        }
     }
 
     pub async fn save<'e, E>(executor: E, user: &User) -> Result<(), UserRepositoryError>
@@ -90,12 +93,17 @@ struct UserRow {
     lock_no: i32,
 }
 
-impl From<UserRow> for User {
-    fn from(row: UserRow) -> Self {
-        Self::new(
+impl TryFrom<UserRow> for User {
+    type Error = UserRepositoryError;
+
+    fn try_from(row: UserRow) -> Result<Self, Self::Error> {
+        let email = Email::try_from(row.email)
+            .map_err(|e| UserRepositoryError::MappingFailed(e.into()))?;
+
+        Ok(User::new(
             UserId::from(row.id),
-            Email::try_from(row.email).expect("Invalid email in database"),
+            email,
             PasswordHash::from_str_unchecked(row.password_hash),
-        )
+        ))
     }
 }

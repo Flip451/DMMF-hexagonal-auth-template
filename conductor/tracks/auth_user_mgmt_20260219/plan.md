@@ -55,10 +55,10 @@
 ### フェーズ 4.5: 基盤の更なる洗練
 - [x] **Task: Rust 2024 への移行** [72ae305]
   - [x] 各クレートの `edition = "2024"` への更新と互換性確認
-- [~] **Task: User モデルのカプセル化**
-  - [ ] `User` 構造体のフィールドを非公開化し、Getter/Constructor を提供
-  - [ ] 不変条件を破壊する直接編集を防止
-  - [ ] トレイトによる抽象化（UserIdentity, Authenticatable）の導入
+- [x] **Task: User モデルのカプセル化** [2420c05]
+  - [x] `User` 構造体のフィールドを非公開化し、Getter/Constructor を提供
+  - [x] 不変条件を破壊する直接編集を防止
+  - [x] トレイトによる抽象化（UserIdentity, Authenticatable）の導入
 
 ### フェーズ 5: アプリケーション層と Web API (Axum)
 - [ ] **Task: Axum ハンドラーの実実装**
