@@ -28,7 +28,7 @@
 - [x] **Task: Conductor - User Manual Verification 'フェーズ 2: ドメイン層の構築 (DMMF)' (Protocol in workflow.md)** [d082bf3]
 
 ### フェーズ 3: CQRS とボイラープレート削減のリファクタリング
-- [x] **Task: CQRS パターンの導入** [736049a]
+- [x] **Task: CQRS パターンの導入** [d41bb71]
   - [x] UseCase を Command と Query に分離（AuthUseCase の再構築）
   - [x] Command/Query ごとの型定義
 - [ ] **Task: derive_more によるボイラープレート削減**
