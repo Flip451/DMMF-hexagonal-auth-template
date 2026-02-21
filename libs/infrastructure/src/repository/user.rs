@@ -1,6 +1,8 @@
 use chrono::{DateTime, Utc};
-use domain::models::user::{Email, PasswordHash, User, UserId, UserRepositoryError};
-use sqlx::{query, query_as, Postgres};
+use domain::models::user::{
+    Authenticatable, Email, PasswordHash, User, UserId, UserIdentity, UserRepositoryError,
+};
+use sqlx::{Postgres, query, query_as};
 use uuid::Uuid;
 
 /// SQLx を使用したユーザーリポジトリの低レベル操作。
@@ -51,9 +53,9 @@ impl SqlxUserRepository {
             WHERE users.lock_no = $12
             "#,
         )
-        .bind(Uuid::from(user.id))
-        .bind(user.email.as_ref())
-        .bind(user.password_hash.as_ref())
+        .bind(Uuid::from(user.id()))
+        .bind(user.email().as_ref())
+        .bind(user.password_hash().as_ref())
         .bind(now)
         .bind(system_name)
         .bind(pgm_cd)
@@ -90,10 +92,10 @@ struct UserRow {
 
 impl From<UserRow> for User {
     fn from(row: UserRow) -> Self {
-        Self {
-            id: UserId::from(row.id),
-            email: Email::try_from(row.email).expect("Invalid email in database"),
-            password_hash: PasswordHash::from_str_unchecked(row.password_hash),
-        }
+        Self::new(
+            UserId::from(row.id),
+            Email::try_from(row.email).expect("Invalid email in database"),
+            PasswordHash::from_str_unchecked(row.password_hash),
+        )
     }
 }

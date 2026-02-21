@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use crate::error::DomainResult;
 use crate::models::auth::{AuthError, PasswordService};
-use crate::models::user::{Email, User};
+use crate::models::user::{Authenticatable, Email, User};
 use crate::repository::tx::TransactionManager;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -58,7 +58,7 @@ where
                 .ok_or(AuthError::InvalidCredentials)?;
 
             let is_valid = password_service
-                .verify(&query.password, &user.password_hash)
+                .verify(&query.password, user.password_hash())
                 .await?;
 
             if !is_valid {
@@ -85,11 +85,11 @@ mod tests {
         valid_password: String,
         valid_password_hash: crate::models::user::PasswordHash,
     ) {
-        let user = User {
-            id: UserId::new(),
-            email: valid_email.clone(),
-            password_hash: valid_password_hash.clone(),
-        };
+        let user = User::new(
+            UserId::new(),
+            valid_email.clone(),
+            valid_password_hash.clone(),
+        );
         let repo = Arc::new(StubUserRepository {
             found_user: Some(user),
             save_error: None,
@@ -114,11 +114,11 @@ mod tests {
     #[rstest]
     #[tokio::test]
     async fn test_login_invalid_credentials(valid_email: Email, valid_password: String) {
-        let user = User {
-            id: UserId::new(),
-            email: valid_email.clone(),
-            password_hash: crate::models::user::PasswordHash::from_str_unchecked("hashed"),
-        };
+        let user = User::new(
+            UserId::new(),
+            valid_email.clone(),
+            crate::models::user::PasswordHash::from_str_unchecked("hashed"),
+        );
         let repo = Arc::new(StubUserRepository {
             found_user: Some(user),
             save_error: None,

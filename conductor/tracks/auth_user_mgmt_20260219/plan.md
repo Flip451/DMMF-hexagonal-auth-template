@@ -42,7 +42,7 @@
   - [x] `UserRepositoryError` の各バリアントから `String` を排除し、適切なエラー型または不透明なエラー型を採用
   - [x] 関連するテストの更新
 
-### フェーズ 4: インフラ層と永続化 (SQLx)
+### フェーズ 4: インフラ層と永続化 (SQLx) [checkpoint: b92962f]
 - [x] **Task: DB スキーマ設計とマイグレーション** [a67a29f]
   - [x] `users` テーブルの作成 (migration クレート)
 - [x] **Task: リポジトリのアダプター実装** [d214c25]
@@ -50,11 +50,20 @@
   - [x] ドメインモデルと DB エンティティの変換 (Mapping)
 - [x] **Task: 統合テストの記述** [d4f47be]
   - [x] DB コンテナを使用したリポジトリのテスト
-- [ ] **Task: Conductor - User Manual Verification 'フェーズ 4: インフラ層と永続化 (SQLx)' (Protocol in workflow.md)**
+- [x] **Task: Conductor - User Manual Verification 'フェーズ 4: インフラ層と永続化 (SQLx)' (Protocol in workflow.md)** [b92962f]
+
+### フェーズ 4.5: 基盤の更なる洗練
+- [x] **Task: Rust 2024 への移行** [72ae305]
+  - [x] 各クレートの `edition = "2024"` への更新と互換性確認
+- [~] **Task: User モデルのカプセル化**
+  - [ ] `User` 構造体のフィールドを非公開化し、Getter/Constructor を提供
+  - [ ] 不変条件を破壊する直接編集を防止
+  - [ ] トレイトによる抽象化（UserIdentity, Authenticatable）の導入
 
 ### フェーズ 5: アプリケーション層と Web API (Axum)
 - [ ] **Task: Axum ハンドラーの実実装**
   - [ ] サインアップ, ログイン, プロフィール取得エンドポイントの作成
+  - [ ] tracing を利用したログ出力の強化
   - [ ] JWT 生成/検証ミドルウェアの実装
 - [ ] **Task: OpenAPI ドキュメントの設定**
   - [ ] utoipa を使用した Swagger 定義の追加

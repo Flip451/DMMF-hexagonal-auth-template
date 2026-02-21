@@ -68,11 +68,7 @@ where
                 .check_email_uniqueness(&*user_repo, &command.email)
                 .await?;
 
-            let user = User {
-                id: UserId::new(),
-                email: command.email.clone(),
-                password_hash,
-            };
+            let user = User::new(UserId::new(), command.email.clone(), password_hash);
 
             user_repo.save(&user).await?;
 
@@ -85,7 +81,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::user::UserUniquenessViolation;
+    use crate::models::user::{UserIdentity, UserUniquenessViolation};
     use crate::usecase::auth::test_utils::utils::*;
     use rstest::*;
 
@@ -118,7 +114,7 @@ mod tests {
 
         let result = usecase.signup(command).await;
         assert!(result.is_ok());
-        assert_eq!(result.unwrap().email, valid_email);
+        assert_eq!(result.unwrap().email(), &valid_email);
     }
 
     #[rstest]

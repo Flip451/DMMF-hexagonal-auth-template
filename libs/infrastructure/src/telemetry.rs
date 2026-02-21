@@ -1,4 +1,4 @@
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
+use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
 
 pub fn init_telemetry(service_name: &str) {
     // ログフィルタの設定 (RUST_LOG環境変数から読み込む。デフォルトは info)
