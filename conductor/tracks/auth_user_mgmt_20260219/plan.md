@@ -33,8 +33,8 @@
   - [x] Command/Query ごとの型定義
 - [x] **Task: derive_more によるボイラープレート削減** [0807a44]
   - [x] `UserId`, `Email`, `PasswordHash` への `Display`, `From`, `AsRef` 等の適用
-- [~] **Task: From トレイトによるエラー変換の自動化**
-  - [ ] `AuthUseCaseError` への `From<DomainError>` 等の実装による `map_err` 削減
+- [x] **Task: From トレイトによるエラー変換の自動化** [7a92ef3]
+  - [x] `AuthUseCaseError` への `From<DomainError>` 等の実装による `map_err` 削減
 - [ ] **Task: Conductor - User Manual Verification 'フェーズ 3: CQRS とボイラープレート削減のリファクタリング'**
 
 ### フェーズ 4: インフラ層と永続化 (SQLx)
