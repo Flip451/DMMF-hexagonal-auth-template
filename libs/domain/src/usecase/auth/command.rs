@@ -138,7 +138,11 @@ mod tests {
         });
         let ps = Arc::new(StubPasswordService {
             verify_result: Arc::new(|| Ok(true)),
-            hash_result: Arc::new(|| Ok(crate::models::user::PasswordHash::from_str_unchecked("hashed"))),
+            hash_result: Arc::new(|| {
+                Ok(crate::models::user::PasswordHash::from_str_unchecked(
+                    "hashed",
+                ))
+            }),
         });
 
         let usecase = AuthCommandUseCaseImpl::new(tm, checker, ps);

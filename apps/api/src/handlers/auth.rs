@@ -1,44 +1,37 @@
-use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
-use domain::usecase::auth::{AuthCommandUseCase, AuthQueryUseCase, LoginQuery, SignupCommand};
-use domain::usecase::error::UseCaseError;
-use std::sync::Arc;
 use crate::AppState;
+use crate::error::AppError;
+use crate::middleware::auth::AuthenticatedUser;
+use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
+use domain::models::user::UserIdentity;
+use domain::usecase::auth::{AuthCommandUseCase, AuthQueryUseCase, LoginQuery, SignupCommand};
+use std::sync::Arc;
 
 pub async fn signup(
     State(state): State<Arc<AppState>>,
     Json(command): Json<SignupCommand>,
-) -> impl IntoResponse {
-    match state.auth_command.signup(command).await {
-        Ok(_) => StatusCode::CREATED.into_response(),
-        Err(e) => map_usecase_error(e),
-    }
+) -> Result<impl IntoResponse, AppError> {
+    state.auth_command.signup(command).await?;
+    Ok(StatusCode::CREATED)
 }
 
 pub async fn login(
     State(state): State<Arc<AppState>>,
     Json(query): Json<LoginQuery>,
-) -> impl IntoResponse {
-    match state.auth_query.login(query).await {
-        Ok(_user) => {
-            // TODO: Generate and return JWT
-            (StatusCode::OK, Json(serde_json::json!({ "token": "dummy-token" }))).into_response()
-        }
-        Err(e) => map_usecase_error(e),
-    }
+) -> Result<impl IntoResponse, AppError> {
+    let user = state.auth_query.login(query).await?;
+
+    // JWT 発行
+    let token = state
+        .auth_service
+        .issue_token(user.id())
+        .map_err(|e| AppError::UseCase(e.into()))?;
+
+    Ok((StatusCode::OK, Json(serde_json::json!({ "token": token }))))
 }
 
-fn map_usecase_error(error: UseCaseError) -> axum::response::Response {
-    let (status, message) = match error {
-        UseCaseError::InvalidInput(msg) => (StatusCode::BAD_REQUEST, msg),
-        UseCaseError::Authentication(msg) => (StatusCode::UNAUTHORIZED, msg),
-        UseCaseError::Forbidden(msg) => (StatusCode::FORBIDDEN, msg),
-        UseCaseError::NotFound(msg) => (StatusCode::NOT_FOUND, msg),
-        UseCaseError::Conflict(msg) => (StatusCode::CONFLICT, msg),
-        UseCaseError::Internal(_) => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            "Internal server error".to_string(),
-        ),
-    };
-
-    (status, Json(serde_json::json!({ "error": message }))).into_response()
+pub async fn me(AuthenticatedUser(claims): AuthenticatedUser) -> impl IntoResponse {
+    (
+        StatusCode::OK,
+        Json(serde_json::json!({ "user_id": claims.sub })),
+    )
 }

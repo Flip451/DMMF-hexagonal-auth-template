@@ -1,5 +1,5 @@
 use crate::error::DomainError;
-use crate::models::auth::{AuthError, PasswordServiceError};
+use crate::models::auth::{AuthError, AuthServiceError, PasswordServiceError};
 use crate::models::user::{
     EmailError, PasswordError, UserError, UserRepositoryError, UserUniquenessViolation,
 };
@@ -97,12 +97,24 @@ impl From<AuthError> for UseCaseError {
             AuthError::InvalidCredentials => {
                 UseCaseError::Authentication("Invalid credentials".into())
             }
-            AuthError::TokenExpired => UseCaseError::Authentication("Token has expired".into()),
-            AuthError::InvalidToken => UseCaseError::Authentication("Invalid token".into()),
             AuthError::Forbidden => {
                 UseCaseError::Forbidden("Access denied: insufficient permissions".into())
             }
             AuthError::PasswordService(e) => e.into(),
+            AuthError::AuthService(e) => e.into(),
+        }
+    }
+}
+
+impl From<AuthServiceError> for UseCaseError {
+    fn from(error: AuthServiceError) -> Self {
+        match error {
+            AuthServiceError::IssuanceFailed(e) => UseCaseError::Internal(e),
+            AuthServiceError::VerificationFailed(e) => UseCaseError::Internal(e),
+            AuthServiceError::TokenExpired => {
+                UseCaseError::Authentication("Token has expired".into())
+            }
+            AuthServiceError::InvalidToken => UseCaseError::Authentication("Invalid token".into()),
         }
     }
 }

@@ -1,4 +1,5 @@
 use crate::models::auth::error::AuthError;
+use crate::models::auth::{AuthServiceError, PasswordServiceError};
 use crate::models::user::{UserError, UserRepositoryError, UserUniquenessViolation};
 use crate::repository::tx::IntoTxError;
 use thiserror::Error;
@@ -42,6 +43,18 @@ impl From<crate::models::user::EmailError> for DomainError {
 impl From<crate::models::user::PasswordError> for DomainError {
     fn from(error: crate::models::user::PasswordError) -> Self {
         Self::User(UserError::from(error))
+    }
+}
+
+impl From<PasswordServiceError> for DomainError {
+    fn from(error: PasswordServiceError) -> Self {
+        Self::Auth(AuthError::from(error))
+    }
+}
+
+impl From<AuthServiceError> for DomainError {
+    fn from(error: AuthServiceError) -> Self {
+        Self::Auth(AuthError::from(error))
     }
 }
 

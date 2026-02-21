@@ -1,20 +1,17 @@
+use crate::models::auth::{AuthServiceError, PasswordServiceError};
 use thiserror::Error;
-use crate::models::auth::PasswordServiceError;
 
 #[derive(Debug, Error)]
 pub enum AuthError {
     #[error("Invalid credentials")]
     InvalidCredentials,
 
-    #[error("Token has expired")]
-    TokenExpired,
-
-    #[error("Invalid token")]
-    InvalidToken,
-
     #[error("Access denied: insufficient permissions")]
     Forbidden,
 
     #[error("Password service failure")]
     PasswordService(#[from] PasswordServiceError),
+
+    #[error("Auth service failure")]
+    AuthService(#[from] AuthServiceError),
 }

@@ -1,6 +1,8 @@
 #[cfg(test)]
 pub mod utils {
-    use crate::models::auth::{AuthError, PasswordService};
+    use crate::models::auth::{
+        AuthService, AuthServiceError, Claims, PasswordService, PasswordServiceError,
+    };
     use crate::models::user::{
         Email, PasswordHash, User, UserRepository, UserRepositoryError, UserUniquenessChecker,
         UserUniquenessViolation,
@@ -74,19 +76,40 @@ pub mod utils {
         }
     }
 
-    pub type PasswordResult<T> = Arc<dyn Fn() -> Result<T, AuthError> + Send + Sync>;
+    pub type TestResult<T, E> = Arc<dyn Fn() -> Result<T, E> + Send + Sync>;
 
     pub struct StubPasswordService {
-        pub verify_result: PasswordResult<bool>,
-        pub hash_result: PasswordResult<PasswordHash>,
+        pub verify_result: TestResult<bool, PasswordServiceError>,
+        pub hash_result: TestResult<PasswordHash, PasswordServiceError>,
     }
     #[async_trait]
     impl PasswordService for StubPasswordService {
-        async fn verify(&self, _pw: &str, _hash: &PasswordHash) -> Result<bool, AuthError> {
+        async fn verify(
+            &self,
+            _pw: &str,
+            _hash: &PasswordHash,
+        ) -> Result<bool, PasswordServiceError> {
             (self.verify_result)()
         }
-        async fn hash(&self, _pw: &str) -> Result<PasswordHash, AuthError> {
+        async fn hash(&self, _pw: &str) -> Result<PasswordHash, PasswordServiceError> {
             (self.hash_result)()
+        }
+    }
+
+    pub struct StubAuthService {
+        pub issue_token_result: TestResult<String, AuthServiceError>,
+        pub verify_token_result: TestResult<Claims, AuthServiceError>,
+    }
+    #[async_trait]
+    impl AuthService for StubAuthService {
+        fn issue_token(
+            &self,
+            _user_id: crate::models::user::UserId,
+        ) -> Result<String, AuthServiceError> {
+            (self.issue_token_result)()
+        }
+        fn verify_token(&self, _token: &str) -> Result<Claims, AuthServiceError> {
+            (self.verify_token_result)()
         }
     }
 

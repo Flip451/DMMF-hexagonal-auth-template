@@ -1,9 +1,11 @@
 use argon2::{
-    password_hash::{rand_core::OsRng, PasswordHash as Argon2Hash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
+    password_hash::{
+        PasswordHash as Argon2Hash, PasswordHasher, PasswordVerifier, SaltString, rand_core::OsRng,
+    },
 };
 use async_trait::async_trait;
-use domain::models::auth::{AuthError, PasswordService, PasswordServiceError};
+use domain::models::auth::{PasswordService, PasswordServiceError};
 use domain::models::user::PasswordHash;
 
 pub struct Argon2PasswordService;
@@ -22,7 +24,11 @@ impl Default for Argon2PasswordService {
 
 #[async_trait]
 impl PasswordService for Argon2PasswordService {
-    async fn verify(&self, password: &str, hash: &PasswordHash) -> Result<bool, AuthError> {
+    async fn verify(
+        &self,
+        password: &str,
+        hash: &PasswordHash,
+    ) -> Result<bool, PasswordServiceError> {
         let parsed_hash = Argon2Hash::new(hash.as_ref())
             .map_err(|e| PasswordServiceError::VerificationFailed(e.into()))?;
 
@@ -33,7 +39,7 @@ impl PasswordService for Argon2PasswordService {
         Ok(is_valid)
     }
 
-    async fn hash(&self, password: &str) -> Result<PasswordHash, AuthError> {
+    async fn hash(&self, password: &str) -> Result<PasswordHash, PasswordServiceError> {
         let salt = SaltString::generate(&mut OsRng);
         let hash_str = Argon2::default()
             .hash_password(password.as_bytes(), &salt)
