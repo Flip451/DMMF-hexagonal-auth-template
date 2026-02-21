@@ -33,6 +33,18 @@ impl From<UserRepositoryError> for DomainError {
     }
 }
 
+impl From<crate::models::user::EmailError> for DomainError {
+    fn from(error: crate::models::user::EmailError) -> Self {
+        Self::User(UserError::from(error))
+    }
+}
+
+impl From<crate::models::user::PasswordError> for DomainError {
+    fn from(error: crate::models::user::PasswordError) -> Self {
+        Self::User(UserError::from(error))
+    }
+}
+
 impl IntoTxError for DomainError {
     fn into_tx_error(error: impl Into<anyhow::Error>) -> Self {
         Self::Infrastructure(error.into())

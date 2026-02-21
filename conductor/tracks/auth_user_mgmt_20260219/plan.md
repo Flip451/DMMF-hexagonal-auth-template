@@ -31,9 +31,9 @@
 - [x] **Task: CQRS パターンの導入** [d41bb71]
   - [x] UseCase を Command と Query に分離（AuthUseCase の再構築）
   - [x] Command/Query ごとの型定義
-- [~] **Task: derive_more によるボイラープレート削減**
-  - [ ] `UserId`, `Email`, `PasswordHash` への `Display`, `From`, `AsRef` 等の適用
-- [ ] **Task: From トレイトによるエラー変換の自動化**
+- [x] **Task: derive_more によるボイラープレート削減** [0807a44]
+  - [x] `UserId`, `Email`, `PasswordHash` への `Display`, `From`, `AsRef` 等の適用
+- [~] **Task: From トレイトによるエラー変換の自動化**
   - [ ] `AuthUseCaseError` への `From<DomainError>` 等の実装による `map_err` 削減
 - [ ] **Task: Conductor - User Manual Verification 'フェーズ 3: CQRS とボイラープレート削減のリファクタリング'**
 
