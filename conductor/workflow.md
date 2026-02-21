@@ -19,7 +19,12 @@ All tasks follow a strict lifecycle:
 
 2. **Mark In Progress:** Before beginning work, edit `plan.md` and change the task from `[ ]` to `[~]`
 
-3. **Write Failing Tests (Red Phase):**
+3. **Design Documentation (Mandatory):**
+   - Before implementing any changes, create or update a design document (e.g., `design.md` or a task-specific design file) in the track folder.
+   - Use **Mermaid** or **PlantUML** to visualize the architecture, class structures, or sequence flows.
+   - Ensure the design is reviewed (at least by self-analysis) to align with the project's architectural principles (DMMF, Hexagonal, etc.).
+
+4. **Write Failing Tests (Red Phase):**
    - Create a new test file for the feature or bug fix.
    - Write one or more unit tests that clearly define the expected behavior and acceptance criteria for the task.
    - **CRITICAL:** Run the tests and confirm that they fail as expected. This is the "Red" phase of TDD. Do not proceed until you have failing tests.

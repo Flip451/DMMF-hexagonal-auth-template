@@ -1,129 +1,18 @@
-use async_trait::async_trait;
-use serde::{Deserialize, Serialize};
-use std::sync::Arc;
-
-use crate::error::DomainResult;
-use crate::models::auth::{AuthError, PasswordService};
-use crate::models::user::{Email, User, UserId, UserUniquenessChecker};
-use crate::repository::tx::TransactionManager;
-use crate::tx;
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SignupCommand {
-    pub email: Email,
-    pub password: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LoginCommand {
-    pub email: Email,
-    pub password: String,
-}
-
-#[async_trait]
-pub trait AuthUseCase: Send + Sync {
-    async fn signup(&self, command: SignupCommand) -> DomainResult<User>;
-    async fn login(&self, command: LoginCommand) -> DomainResult<User>;
-}
-
-pub struct AuthUseCaseImpl<TM, UC, PS>
-where
-    TM: TransactionManager,
-    UC: UserUniquenessChecker,
-    PS: PasswordService,
-{
-    transaction_manager: Arc<TM>,
-    user_uniqueness_checker: Arc<UC>,
-    password_service: Arc<PS>,
-}
-
-impl<TM, UC, PS> AuthUseCaseImpl<TM, UC, PS>
-where
-    TM: TransactionManager,
-    UC: UserUniquenessChecker,
-    PS: PasswordService,
-{
-    pub fn new(
-        transaction_manager: Arc<TM>,
-        user_uniqueness_checker: Arc<UC>,
-        password_service: Arc<PS>,
-    ) -> Self {
-        Self {
-            transaction_manager,
-            user_uniqueness_checker,
-            password_service,
-        }
-    }
-}
-
-#[async_trait]
-impl<TM, UC, PS> AuthUseCase for AuthUseCaseImpl<TM, UC, PS>
-where
-    TM: TransactionManager,
-    UC: UserUniquenessChecker + 'static,
-    PS: PasswordService + 'static,
-{
-    async fn signup(&self, command: SignupCommand) -> DomainResult<User> {
-        let checker = Arc::clone(&self.user_uniqueness_checker);
-        let password_service = Arc::clone(&self.password_service);
-
-        let password_hash = password_service.hash(&command.password).await?;
-
-        tx!(self.transaction_manager, |factory| {
-            let user_repo = factory.user_repository();
-
-            checker
-                .check_email_uniqueness(&*user_repo, &command.email)
-                .await?;
-
-            let user = User {
-                id: UserId::new(),
-                email: command.email.clone(),
-                password_hash,
-            };
-
-            user_repo.save(&user).await?;
-
-            Ok(user)
-        })
-        .await
-    }
-
-    async fn login(&self, command: LoginCommand) -> DomainResult<User> {
-        let password_service = Arc::clone(&self.password_service);
-
-        tx!(self.transaction_manager, |factory| {
-            let user_repo = factory.user_repository();
-
-            let user = user_repo
-                .find_by_email(&command.email)
-                .await?
-                .ok_or(AuthError::InvalidCredentials)?;
-
-            let is_valid = password_service
-                .verify(&command.password, &user.password_hash)
-                .await?;
-
-            if !is_valid {
-                return Err(AuthError::InvalidCredentials.into());
-            }
-
-            Ok(user)
-        })
-        .await
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::super::{AuthCommandUseCase, AuthCommandUseCaseImpl, SignupCommand};
+    use super::super::{AuthQueryUseCase, AuthQueryUseCaseImpl, LoginQuery};
+    use crate::models::auth::{AuthError, PasswordService};
     use crate::models::user::{
-        PasswordHash, UserRepository, UserRepositoryError, UserUniquenessViolation,
+        Email, PasswordHash, User, UserId, UserRepository, UserRepositoryError,
+        UserUniquenessChecker, UserUniquenessViolation,
     };
-    use crate::repository::tx::{IntoTxError, RepositoryFactory};
+    use crate::repository::tx::{IntoTxError, RepositoryFactory, TransactionManager};
+    use async_trait::async_trait;
     use futures_util::future::BoxFuture;
     use rstest::*;
     use std::fmt::Debug;
+    use std::sync::Arc;
 
     // --- Stubs ---
 
@@ -227,7 +116,7 @@ mod tests {
             hash_result: Ok(password_hash),
         });
 
-        let usecase = AuthUseCaseImpl::new(tm, checker, ps);
+        let usecase = AuthCommandUseCaseImpl::new(tm, checker, ps);
         let command = SignupCommand {
             email: email.clone(),
             password,
@@ -247,7 +136,6 @@ mod tests {
         });
         let factory = Arc::new(StubRepositoryFactory { repo });
         let tm = Arc::new(StubTransactionManager { factory });
-        // 一意性チェックで失敗
         let checker = Arc::new(StubUserUniquenessChecker {
             result: Err(UserUniquenessViolation::EmailAlreadyExists(email.clone())),
         });
@@ -256,7 +144,7 @@ mod tests {
             hash_result: Ok(PasswordHash::from_str_unchecked("hashed")),
         });
 
-        let usecase = AuthUseCaseImpl::new(tm, checker, ps);
+        let usecase = AuthCommandUseCaseImpl::new(tm, checker, ps);
         let command = SignupCommand {
             email: email.clone(),
             password,
@@ -287,14 +175,13 @@ mod tests {
         });
         let factory = Arc::new(StubRepositoryFactory { repo });
         let tm = Arc::new(StubTransactionManager { factory });
-        let checker = Arc::new(StubUserUniquenessChecker { result: Ok(()) });
         let ps = Arc::new(StubPasswordService {
             verify_result: Ok(true),
             hash_result: Ok(password_hash),
         });
 
-        let usecase = AuthUseCaseImpl::new(tm, checker, ps);
-        let result = usecase.login(LoginCommand { email, password }).await;
+        let usecase = AuthQueryUseCaseImpl::new(tm, ps);
+        let result = usecase.login(LoginQuery { email, password }).await;
         assert!(result.is_ok());
     }
 
@@ -312,14 +199,13 @@ mod tests {
         });
         let factory = Arc::new(StubRepositoryFactory { repo });
         let tm = Arc::new(StubTransactionManager { factory });
-        let checker = Arc::new(StubUserUniquenessChecker { result: Ok(()) });
         let ps = Arc::new(StubPasswordService {
-            verify_result: Ok(false), // パスワード不一致
+            verify_result: Ok(false), // Password mismatch
             hash_result: Ok(PasswordHash::from_str_unchecked("hashed")),
         });
 
-        let usecase = AuthUseCaseImpl::new(tm, checker, ps);
-        let result = usecase.login(LoginCommand { email, password }).await;
+        let usecase = AuthQueryUseCaseImpl::new(tm, ps);
+        let result = usecase.login(LoginQuery { email, password }).await;
 
         assert!(matches!(
             result,
