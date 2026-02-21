@@ -38,9 +38,9 @@
 - [x] **Task: Conductor - User Manual Verification 'フェーズ 3: CQRS とボイラープレート削減のリファクタリング'** [60296c6]
 
 ### フェーズ 3.5: ドメインエラーの洗練
-- [~] **Task: UserRepositoryError のリファクタリング (String 削減)**
-  - [ ] `UserRepositoryError` の各バリアントから `String` を排除し、適切なエラー型または不透明なエラー型を採用
-  - [ ] 関連するテストの更新
+- [x] **Task: UserRepositoryError のリファクタリング (String 削減)** [d214c25]
+  - [x] `UserRepositoryError` の各バリアントから `String` を排除し、適切なエラー型または不透明なエラー型を採用
+  - [x] 関連するテストの更新
 
 ### フェーズ 4: インフラ層と永続化 (SQLx)
 - [ ] **Task: DB スキーマ設計とマイグレーション**
