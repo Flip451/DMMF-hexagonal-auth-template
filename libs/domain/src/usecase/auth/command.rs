@@ -97,12 +97,14 @@ mod tests {
         valid_password_hash: crate::models::user::PasswordHash,
     ) {
         let repo = Arc::new(StubUserRepository {
-            find_result: Ok(None),
-            save_result: Ok(()),
+            found_user: None,
+            save_error: None,
         });
         let factory = Arc::new(StubRepositoryFactory { repo });
         let tm = Arc::new(StubTransactionManager { factory });
-        let checker = Arc::new(StubUserUniquenessChecker { result: Ok(()) });
+        let checker = Arc::new(StubUserUniquenessChecker {
+            error_factory: None,
+        });
         let ps = Arc::new(StubPasswordService {
             verify_result: Ok(true),
             hash_result: Ok(valid_password_hash),
@@ -123,15 +125,17 @@ mod tests {
     #[tokio::test]
     async fn test_signup_duplicate_email(valid_email: Email, valid_password: String) {
         let repo = Arc::new(StubUserRepository {
-            find_result: Ok(None),
-            save_result: Ok(()),
+            found_user: None,
+            save_error: None,
         });
         let factory = Arc::new(StubRepositoryFactory { repo });
         let tm = Arc::new(StubTransactionManager { factory });
         let checker = Arc::new(StubUserUniquenessChecker {
-            result: Err(UserUniquenessViolation::EmailAlreadyExists(
-                valid_email.clone(),
-            )),
+            error_factory: Some(|| {
+                UserUniquenessViolation::EmailAlreadyExists(
+                    Email::try_from("test@example.com").unwrap(),
+                )
+            }),
         });
         let ps = Arc::new(StubPasswordService {
             verify_result: Ok(true),

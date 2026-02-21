@@ -27,7 +27,7 @@
   - [x] UseCase 層のロジックテスト
 - [x] **Task: Conductor - User Manual Verification 'フェーズ 2: ドメイン層の構築 (DMMF)' (Protocol in workflow.md)** [d082bf3]
 
-### フェーズ 3: CQRS とボイラープレート削減のリファクタリング
+### フェーズ 3: CQRS とボイラープレート削減のリファクタリング [checkpoint: 60296c6]
 - [x] **Task: CQRS パターンの導入** [d41bb71]
   - [x] UseCase を Command と Query に分離（AuthUseCase の再構築）
   - [x] Command/Query ごとの型定義
@@ -35,7 +35,12 @@
   - [x] `UserId`, `Email`, `PasswordHash` への `Display`, `From`, `AsRef` 等の適用
 - [x] **Task: From トレイトによるエラー変換の自動化** [7a92ef3]
   - [x] `AuthUseCaseError` への `From<DomainError>` 等の実装による `map_err` 削減
-- [ ] **Task: Conductor - User Manual Verification 'フェーズ 3: CQRS とボイラープレート削減のリファクタリング'**
+- [x] **Task: Conductor - User Manual Verification 'フェーズ 3: CQRS とボイラープレート削減のリファクタリング'** [60296c6]
+
+### フェーズ 3.5: ドメインエラーの洗練
+- [~] **Task: UserRepositoryError のリファクタリング (String 削減)**
+  - [ ] `UserRepositoryError` の各バリアントから `String` を排除し、適切なエラー型または不透明なエラー型を採用
+  - [ ] 関連するテストの更新
 
 ### フェーズ 4: インフラ層と永続化 (SQLx)
 - [ ] **Task: DB スキーマ設計とマイグレーション**

@@ -3,7 +3,7 @@ use crate::models::user::{
 };
 use thiserror::Error;
 
-#[derive(Debug, Clone, Error)]
+#[derive(Debug, Error)]
 pub enum UserError {
     #[error(transparent)]
     Email(#[from] EmailError),

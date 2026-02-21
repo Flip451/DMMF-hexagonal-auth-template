@@ -91,8 +91,8 @@ mod tests {
             password_hash: valid_password_hash.clone(),
         };
         let repo = Arc::new(StubUserRepository {
-            find_result: Ok(Some(user)),
-            save_result: Ok(()),
+            found_user: Some(user),
+            save_error: None,
         });
         let factory = Arc::new(StubRepositoryFactory { repo });
         let tm = Arc::new(StubTransactionManager { factory });
@@ -120,8 +120,8 @@ mod tests {
             password_hash: crate::models::user::PasswordHash::from_str_unchecked("hashed"),
         };
         let repo = Arc::new(StubUserRepository {
-            find_result: Ok(Some(user)),
-            save_result: Ok(()),
+            found_user: Some(user),
+            save_error: None,
         });
         let factory = Arc::new(StubRepositoryFactory { repo });
         let tm = Arc::new(StubTransactionManager { factory });

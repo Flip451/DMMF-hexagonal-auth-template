@@ -2,7 +2,7 @@ use crate::models::user::{Email, UserRepository, UserRepositoryError};
 use async_trait::async_trait;
 use thiserror::Error;
 
-#[derive(Debug, Clone, Error, PartialEq, Eq)]
+#[derive(Debug, Error)]
 pub enum UserUniquenessViolation {
     #[error("Email already exists: {0}")]
     EmailAlreadyExists(Email),
@@ -57,13 +57,14 @@ mod tests {
     use rstest::*;
 
     pub struct StubUserRepository {
-        pub find_result: Result<Option<User>, UserRepositoryError>,
+        // テスト用なので固定の成功値を返すように単純化
+        pub found_user: Option<User>,
     }
 
     #[async_trait]
     impl UserRepository for StubUserRepository {
         async fn find_by_email(&self, _email: &Email) -> Result<Option<User>, UserRepositoryError> {
-            self.find_result.clone()
+            Ok(self.found_user.clone())
         }
         async fn save(&self, _user: &User) -> Result<(), UserRepositoryError> {
             Ok(())
@@ -86,9 +87,7 @@ mod tests {
         checker: UserUniquenessCheckerImpl,
         email: Email,
     ) {
-        let repo = StubUserRepository {
-            find_result: Ok(None),
-        };
+        let repo = StubUserRepository { found_user: None };
         let result = checker.check_email_uniqueness(&repo, &email).await;
         assert!(result.is_ok());
     }
@@ -105,7 +104,7 @@ mod tests {
             password_hash: PasswordHash::from_str_unchecked("hash"),
         };
         let repo = StubUserRepository {
-            find_result: Ok(Some(user)),
+            found_user: Some(user),
         };
 
         let result = checker.check_email_uniqueness(&repo, &email).await;

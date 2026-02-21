@@ -14,19 +14,19 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-#[derive(Debug, Clone, Error, PartialEq, Eq)]
+#[derive(Debug, Error)]
 pub enum UserRepositoryError {
-    #[error("Database connection failed: {0}")]
-    ConnectionFailed(String),
+    #[error("Database connection failed")]
+    ConnectionFailed,
 
-    #[error("Database query failed: {0}")]
-    QueryFailed(String),
+    #[error("Database query failed")]
+    QueryFailed(#[source] anyhow::Error),
 
-    #[error("Data mapping failed: {0}")]
-    MappingFailed(String),
+    #[error("Data mapping failed")]
+    MappingFailed(#[source] anyhow::Error),
 
-    #[error("Unknown repository error: {0}")]
-    Unknown(String),
+    #[error("Unexpected repository error")]
+    Unexpected(#[from] anyhow::Error),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

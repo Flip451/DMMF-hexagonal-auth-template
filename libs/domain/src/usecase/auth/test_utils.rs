@@ -15,16 +15,20 @@ pub mod utils {
     // --- Stubs ---
 
     pub struct StubUserRepository {
-        pub find_result: Result<Option<User>, UserRepositoryError>,
-        pub save_result: Result<(), UserRepositoryError>,
+        pub found_user: Option<User>,
+        pub save_error: Option<fn() -> UserRepositoryError>,
     }
     #[async_trait]
     impl UserRepository for StubUserRepository {
         async fn find_by_email(&self, _email: &Email) -> Result<Option<User>, UserRepositoryError> {
-            self.find_result.clone()
+            Ok(self.found_user.clone())
         }
         async fn save(&self, _user: &User) -> Result<(), UserRepositoryError> {
-            self.save_result.clone()
+            if let Some(err_fn) = self.save_error {
+                Err(err_fn())
+            } else {
+                Ok(())
+            }
         }
     }
 
@@ -53,7 +57,7 @@ pub mod utils {
     }
 
     pub struct StubUserUniquenessChecker {
-        pub result: Result<(), UserUniquenessViolation>,
+        pub error_factory: Option<fn() -> UserUniquenessViolation>,
     }
     #[async_trait]
     impl UserUniquenessChecker for StubUserUniquenessChecker {
@@ -62,7 +66,11 @@ pub mod utils {
             _repo: &dyn UserRepository,
             _email: &Email,
         ) -> Result<(), UserUniquenessViolation> {
-            self.result.clone()
+            if let Some(f) = self.error_factory {
+                Err(f())
+            } else {
+                Ok(())
+            }
         }
     }
 
