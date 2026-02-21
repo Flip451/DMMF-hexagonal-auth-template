@@ -1,21 +1,19 @@
+pub mod dto;
+pub mod query;
+
 use async_trait::async_trait;
-use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-use crate::models::auth::{AuthError, PasswordService};
-use crate::models::user::{Authenticatable, Email, User};
+use self::dto::LoginResponseDTO;
+use self::query::LoginQuery;
+use crate::models::auth::{AuthError, AuthService, PasswordService};
+use crate::models::user::{Authenticatable, Email, User, UserIdentity};
 use crate::repository::tx::TransactionManager;
 use crate::usecase::error::UseCaseResult;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LoginQuery {
-    pub email: Email,
-    pub password: String,
-}
-
 #[async_trait]
 pub trait AuthQueryUseCase: Send + Sync {
-    async fn login(&self, query: LoginQuery) -> UseCaseResult<User>;
+    async fn login(&self, query: LoginQuery) -> UseCaseResult<LoginResponseDTO>;
 }
 
 pub struct AuthQueryUseCaseImpl<TM, PS>
@@ -25,6 +23,7 @@ where
 {
     transaction_manager: Arc<TM>,
     password_service: Arc<PS>,
+    auth_service: Arc<dyn AuthService>,
 }
 
 impl<TM, PS> AuthQueryUseCaseImpl<TM, PS>
@@ -32,10 +31,15 @@ where
     TM: TransactionManager,
     PS: PasswordService,
 {
-    pub fn new(transaction_manager: Arc<TM>, password_service: Arc<PS>) -> Self {
+    pub fn new(
+        transaction_manager: Arc<TM>,
+        password_service: Arc<PS>,
+        auth_service: Arc<dyn AuthService>,
+    ) -> Self {
         Self {
             transaction_manager,
             password_service,
+            auth_service,
         }
     }
 }
@@ -46,14 +50,15 @@ where
     TM: TransactionManager,
     PS: PasswordService + 'static,
 {
-    async fn login(&self, query: LoginQuery) -> UseCaseResult<User> {
+    async fn login(&self, query: LoginQuery) -> UseCaseResult<LoginResponseDTO> {
+        let email = Email::try_from(query.email)?;
         let password_service = Arc::clone(&self.password_service);
 
         let user = crate::tx!(self.transaction_manager, |factory| {
             let user_repo = factory.user_repository();
 
             let user = user_repo
-                .find_by_email(&query.email)
+                .find_by_email(&email)
                 .await?
                 .ok_or(AuthError::InvalidCredentials)?;
 
@@ -69,7 +74,10 @@ where
         })
         .await?;
 
-        Ok(user)
+        // ユースケース内でトークンを発行
+        let token = self.auth_service.issue_token(user.id())?;
+
+        Ok(LoginResponseDTO::new(&user, token))
     }
 }
 
@@ -103,15 +111,22 @@ mod tests {
             verify_result: Arc::new(|| Ok(true)),
             hash_result: Arc::new(move || Ok(valid_password_hash.clone())),
         });
+        let auth_service = Arc::new(StubAuthService {
+            issue_token_result: Arc::new(|| Ok("test-token".to_string())),
+            verify_token_result: Arc::new(|| unreachable!()),
+        });
 
-        let usecase = AuthQueryUseCaseImpl::new(tm, ps);
+        let usecase = AuthQueryUseCaseImpl::new(tm, ps, auth_service);
         let result = usecase
             .login(LoginQuery {
-                email: valid_email,
+                email: valid_email.to_string(),
                 password: valid_password,
             })
             .await;
         assert!(result.is_ok());
+        let response = result.unwrap();
+        assert_eq!(response.email, valid_email.to_string());
+        assert_eq!(response.token, "test-token");
     }
 
     #[rstest]
@@ -136,11 +151,15 @@ mod tests {
                 ))
             }),
         });
+        let auth_service = Arc::new(StubAuthService {
+            issue_token_result: Arc::new(|| unreachable!()),
+            verify_token_result: Arc::new(|| unreachable!()),
+        });
 
-        let usecase = AuthQueryUseCaseImpl::new(tm, ps);
+        let usecase = AuthQueryUseCaseImpl::new(tm, ps, auth_service);
         let result = usecase
             .login(LoginQuery {
-                email: valid_email,
+                email: valid_email.to_string(),
                 password: valid_password,
             })
             .await;

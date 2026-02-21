@@ -1,21 +1,19 @@
+pub mod command;
+pub mod dto;
+
 use async_trait::async_trait;
-use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
+use self::command::SignupCommand;
+use self::dto::SignupResponseDTO;
 use crate::models::auth::PasswordService;
 use crate::models::user::{Email, User, UserId, UserUniquenessChecker};
 use crate::repository::tx::TransactionManager;
 use crate::usecase::error::UseCaseResult;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SignupCommand {
-    pub email: Email,
-    pub password: String,
-}
-
 #[async_trait]
 pub trait AuthCommandUseCase: Send + Sync {
-    async fn signup(&self, command: SignupCommand) -> UseCaseResult<User>;
+    async fn signup(&self, command: SignupCommand) -> UseCaseResult<SignupResponseDTO>;
 }
 
 pub struct AuthCommandUseCaseImpl<TM, UC, PS>
@@ -55,7 +53,9 @@ where
     UC: UserUniquenessChecker + 'static,
     PS: PasswordService + 'static,
 {
-    async fn signup(&self, command: SignupCommand) -> UseCaseResult<User> {
+    async fn signup(&self, command: SignupCommand) -> UseCaseResult<SignupResponseDTO> {
+        let email = Email::try_from(command.email)?;
+
         let checker = Arc::clone(&self.user_uniqueness_checker);
         let password_service = Arc::clone(&self.password_service);
 
@@ -64,11 +64,9 @@ where
         let user = crate::tx!(self.transaction_manager, |factory| {
             let user_repo = factory.user_repository();
 
-            checker
-                .check_email_uniqueness(&*user_repo, &command.email)
-                .await?;
+            checker.check_email_uniqueness(&*user_repo, &email).await?;
 
-            let user = User::new(UserId::new(), command.email.clone(), password_hash);
+            let user = User::new(UserId::new(), email, password_hash);
 
             user_repo.save(&user).await?;
 
@@ -76,14 +74,14 @@ where
         })
         .await?;
 
-        Ok(user)
+        Ok(SignupResponseDTO::from(user))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::user::{UserIdentity, UserUniquenessViolation};
+    use crate::models::user::UserUniquenessViolation;
     use crate::usecase::auth::test_utils::utils::*;
     use crate::usecase::error::UseCaseError;
     use rstest::*;
@@ -111,13 +109,13 @@ mod tests {
 
         let usecase = AuthCommandUseCaseImpl::new(tm, checker, ps);
         let command = SignupCommand {
-            email: valid_email.clone(),
+            email: valid_email.to_string(),
             password: valid_password,
         };
 
         let result = usecase.signup(command).await;
         assert!(result.is_ok());
-        assert_eq!(result.unwrap().email(), &valid_email);
+        assert_eq!(result.unwrap().email, valid_email.to_string());
     }
 
     #[rstest]
@@ -147,7 +145,7 @@ mod tests {
 
         let usecase = AuthCommandUseCaseImpl::new(tm, checker, ps);
         let command = SignupCommand {
-            email: valid_email.clone(),
+            email: valid_email.to_string(),
             password: valid_password,
         };
 

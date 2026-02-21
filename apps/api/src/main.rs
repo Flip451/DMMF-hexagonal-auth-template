@@ -13,10 +13,15 @@ use std::env;
 use std::sync::Arc;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use utoipa::OpenApi;
+use utoipa_swagger_ui::SwaggerUi;
 
 mod error;
 mod handlers;
 pub mod middleware;
+mod openapi;
+
+use crate::openapi::ApiDoc;
 
 pub struct AppState {
     pub auth_command: Arc<
@@ -54,7 +59,7 @@ async fn main() -> anyhow::Result<()> {
     let tx_manager = Arc::new(SqlxTransactionManager::new(pool));
     let uniqueness_checker = Arc::new(UserUniquenessCheckerImpl::new());
     let password_service = Arc::new(Argon2PasswordService::new());
-    let auth_service = Arc::new(JwtAuthService::new(&jwt_secret));
+    let auth_service: Arc<dyn AuthService> = Arc::new(JwtAuthService::new(&jwt_secret));
 
     // UseCase instantiation
     let auth_command = Arc::new(AuthCommandUseCaseImpl::new(
@@ -62,7 +67,11 @@ async fn main() -> anyhow::Result<()> {
         uniqueness_checker,
         password_service.clone(),
     ));
-    let auth_query = Arc::new(AuthQueryUseCaseImpl::new(tx_manager, password_service));
+    let auth_query = Arc::new(AuthQueryUseCaseImpl::new(
+        tx_manager,
+        password_service,
+        auth_service.clone(),
+    ));
 
     let state = Arc::new(AppState {
         auth_command,
@@ -72,9 +81,10 @@ async fn main() -> anyhow::Result<()> {
 
     // Router
     let app = Router::new()
-        .route("/api/v1/auth/signup", post(handlers::auth::signup))
-        .route("/api/v1/auth/login", post(handlers::auth::login))
-        .route("/api/v1/users/me", get(handlers::auth::me))
+        .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
+        .route("/api/v1/auth/signup", post(handlers::auth::signup::signup))
+        .route("/api/v1/auth/login", post(handlers::auth::login::login))
+        .route("/api/v1/users/me", get(handlers::users::me::me))
         .layer(TraceLayer::new_for_http())
         .with_state(state);
 
