@@ -1,5 +1,5 @@
 use crate::error::DomainError;
-use crate::models::auth::AuthError;
+use crate::models::auth::{AuthError, PasswordServiceError};
 use crate::models::user::{
     EmailError, PasswordError, UserError, UserRepositoryError, UserUniquenessViolation,
 };
@@ -102,6 +102,16 @@ impl From<AuthError> for UseCaseError {
             AuthError::Forbidden => {
                 UseCaseError::Forbidden("Access denied: insufficient permissions".into())
             }
+            AuthError::PasswordService(e) => e.into(),
+        }
+    }
+}
+
+impl From<PasswordServiceError> for UseCaseError {
+    fn from(error: PasswordServiceError) -> Self {
+        match error {
+            PasswordServiceError::HashingFailed(e) => UseCaseError::Internal(e),
+            PasswordServiceError::VerificationFailed(e) => UseCaseError::Internal(e),
         }
     }
 }

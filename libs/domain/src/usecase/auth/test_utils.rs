@@ -74,17 +74,19 @@ pub mod utils {
         }
     }
 
+    pub type PasswordResult<T> = Arc<dyn Fn() -> Result<T, AuthError> + Send + Sync>;
+
     pub struct StubPasswordService {
-        pub verify_result: Result<bool, AuthError>,
-        pub hash_result: Result<PasswordHash, AuthError>,
+        pub verify_result: PasswordResult<bool>,
+        pub hash_result: PasswordResult<PasswordHash>,
     }
     #[async_trait]
     impl PasswordService for StubPasswordService {
         async fn verify(&self, _pw: &str, _hash: &PasswordHash) -> Result<bool, AuthError> {
-            self.verify_result.clone()
+            (self.verify_result)()
         }
         async fn hash(&self, _pw: &str) -> Result<PasswordHash, AuthError> {
-            self.hash_result.clone()
+            (self.hash_result)()
         }
     }
 

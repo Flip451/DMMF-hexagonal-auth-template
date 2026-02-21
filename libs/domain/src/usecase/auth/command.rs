@@ -105,8 +105,8 @@ mod tests {
             error_factory: None,
         });
         let ps = Arc::new(StubPasswordService {
-            verify_result: Ok(true),
-            hash_result: Ok(valid_password_hash),
+            verify_result: Arc::new(|| Ok(true)),
+            hash_result: Arc::new(move || Ok(valid_password_hash.clone())),
         });
 
         let usecase = AuthCommandUseCaseImpl::new(tm, checker, ps);
@@ -137,10 +137,8 @@ mod tests {
             }),
         });
         let ps = Arc::new(StubPasswordService {
-            verify_result: Ok(true),
-            hash_result: Ok(crate::models::user::PasswordHash::from_str_unchecked(
-                "hashed",
-            )),
+            verify_result: Arc::new(|| Ok(true)),
+            hash_result: Arc::new(|| Ok(crate::models::user::PasswordHash::from_str_unchecked("hashed"))),
         });
 
         let usecase = AuthCommandUseCaseImpl::new(tm, checker, ps);

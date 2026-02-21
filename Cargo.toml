@@ -27,7 +27,7 @@ utoipa = { version = "5", features = ["axum_extras"] }
 sqlx = { version = "0.8", features = ["runtime-tokio", "postgres", "uuid", "chrono", "macros"] }
 
 # Security
-argon2 = "0.5"
+argon2 = { version = "0.5", features = ["std"] }
 jsonwebtoken = "10"
 
 # Observability
@@ -43,5 +43,6 @@ derive_more = { version = "2", features = ["display", "from", "as_ref", "into", 
 uuid = { version = "1", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 config = "0.15"
-mockall = "0.13"
-rstest = "0.25"
+mockall = "0.14"
+rstest = "0.26"
+tower-http = { version = "0.6", features = ["trace", "cors"] }

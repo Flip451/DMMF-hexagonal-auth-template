@@ -100,8 +100,8 @@ mod tests {
         let factory = Arc::new(StubRepositoryFactory { repo });
         let tm = Arc::new(StubTransactionManager { factory });
         let ps = Arc::new(StubPasswordService {
-            verify_result: Ok(true),
-            hash_result: Ok(valid_password_hash),
+            verify_result: Arc::new(|| Ok(true)),
+            hash_result: Arc::new(move || Ok(valid_password_hash.clone())),
         });
 
         let usecase = AuthQueryUseCaseImpl::new(tm, ps);
@@ -129,10 +129,8 @@ mod tests {
         let factory = Arc::new(StubRepositoryFactory { repo });
         let tm = Arc::new(StubTransactionManager { factory });
         let ps = Arc::new(StubPasswordService {
-            verify_result: Ok(false), // Password mismatch
-            hash_result: Ok(crate::models::user::PasswordHash::from_str_unchecked(
-                "hashed",
-            )),
+            verify_result: Arc::new(|| Ok(false)), // Password mismatch
+            hash_result: Arc::new(|| Ok(crate::models::user::PasswordHash::from_str_unchecked("hashed"))),
         });
 
         let usecase = AuthQueryUseCaseImpl::new(tm, ps);

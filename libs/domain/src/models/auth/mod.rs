@@ -4,6 +4,16 @@ pub use error::AuthError;
 
 use crate::models::user::PasswordHash;
 use async_trait::async_trait;
+use thiserror::Error;
+
+#[derive(Debug, Error)]
+pub enum PasswordServiceError {
+    #[error("Failed to hash password")]
+    HashingFailed(#[source] anyhow::Error),
+
+    #[error("Failed to verify password")]
+    VerificationFailed(#[source] anyhow::Error),
+}
 
 #[async_trait]
 pub trait PasswordService: Send + Sync {

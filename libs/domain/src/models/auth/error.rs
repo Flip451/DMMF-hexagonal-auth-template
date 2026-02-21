@@ -1,6 +1,7 @@
 use thiserror::Error;
+use crate::models::auth::PasswordServiceError;
 
-#[derive(Debug, Clone, Error, PartialEq, Eq)]
+#[derive(Debug, Error)]
 pub enum AuthError {
     #[error("Invalid credentials")]
     InvalidCredentials,
@@ -13,4 +14,7 @@ pub enum AuthError {
 
     #[error("Access denied: insufficient permissions")]
     Forbidden,
+
+    #[error("Password service failure")]
+    PasswordService(#[from] PasswordServiceError),
 }
