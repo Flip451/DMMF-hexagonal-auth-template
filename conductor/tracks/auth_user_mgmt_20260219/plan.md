@@ -48,8 +48,8 @@
 - [x] **Task: リポジトリのアダプター実装** [d214c25]
   - [x] SQLx を使用したユーザー情報の永続化実装
   - [x] ドメインモデルと DB エンティティの変換 (Mapping)
-- [~] **Task: 統合テストの記述**
-  - [ ] DB コンテナを使用したリポジトリのテスト
+- [x] **Task: 統合テストの記述** [d4f47be]
+  - [x] DB コンテナを使用したリポジトリのテスト
 - [ ] **Task: Conductor - User Manual Verification 'フェーズ 4: インフラ層と永続化 (SQLx)' (Protocol in workflow.md)**
 
 ### フェーズ 5: アプリケーション層と Web API (Axum)

@@ -47,6 +47,11 @@ description = "ツールコンテナにシェルで入る"
 command = "docker"
 args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "bash"]
 
+[tasks.db-shell]
+description = "PostgreSQL CLI に接続"
+command = "docker"
+args = ["compose", "exec", "db", "psql", "-U", "user", "-d", "myapp"]
+
 # SQLx 操作
 [tasks.migrate-add]
 description = "新規マイグレーション作成 (使用例: cargo make migrate-add create_users)"
