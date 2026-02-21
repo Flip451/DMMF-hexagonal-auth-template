@@ -1,13 +1,16 @@
 use chrono::{DateTime, Utc};
 use domain::models::user::{Email, PasswordHash, User, UserId, UserRepositoryError};
-use sqlx::{Postgres, query, query_as};
+use sqlx::{query, query_as, Postgres};
 use uuid::Uuid;
 
 /// SQLx を使用したユーザーリポジトリの低レベル操作。
 pub struct SqlxUserRepository;
 
 impl SqlxUserRepository {
-    pub async fn find_by_email<'e, E>(executor: E, email: &Email) -> Result<Option<User>, UserRepositoryError>
+    pub async fn find_by_email<'e, E>(
+        executor: E,
+        email: &Email,
+    ) -> Result<Option<User>, UserRepositoryError>
     where
         E: sqlx::Executor<'e, Database = Postgres>,
     {
@@ -68,6 +71,7 @@ impl SqlxUserRepository {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Debug, sqlx::FromRow)]
 struct UserRow {
     id: Uuid,
