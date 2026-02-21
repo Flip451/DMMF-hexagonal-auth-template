@@ -2,7 +2,7 @@ pub mod command;
 pub mod query;
 
 #[cfg(test)]
-mod tests;
+pub mod test_utils;
 
 pub use command::*;
 pub use query::*;

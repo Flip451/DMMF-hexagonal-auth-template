@@ -81,3 +81,79 @@ where
         .await
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::user::UserUniquenessViolation;
+    use crate::usecase::auth::test_utils::utils::*;
+    use rstest::*;
+
+    #[rstest]
+    #[tokio::test]
+    async fn test_signup_success(
+        valid_email: Email,
+        valid_password: String,
+        valid_password_hash: crate::models::user::PasswordHash,
+    ) {
+        let repo = Arc::new(StubUserRepository {
+            find_result: Ok(None),
+            save_result: Ok(()),
+        });
+        let factory = Arc::new(StubRepositoryFactory { repo });
+        let tm = Arc::new(StubTransactionManager { factory });
+        let checker = Arc::new(StubUserUniquenessChecker { result: Ok(()) });
+        let ps = Arc::new(StubPasswordService {
+            verify_result: Ok(true),
+            hash_result: Ok(valid_password_hash),
+        });
+
+        let usecase = AuthCommandUseCaseImpl::new(tm, checker, ps);
+        let command = SignupCommand {
+            email: valid_email.clone(),
+            password: valid_password,
+        };
+
+        let result = usecase.signup(command).await;
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().email, valid_email);
+    }
+
+    #[rstest]
+    #[tokio::test]
+    async fn test_signup_duplicate_email(valid_email: Email, valid_password: String) {
+        let repo = Arc::new(StubUserRepository {
+            find_result: Ok(None),
+            save_result: Ok(()),
+        });
+        let factory = Arc::new(StubRepositoryFactory { repo });
+        let tm = Arc::new(StubTransactionManager { factory });
+        let checker = Arc::new(StubUserUniquenessChecker {
+            result: Err(UserUniquenessViolation::EmailAlreadyExists(
+                valid_email.clone(),
+            )),
+        });
+        let ps = Arc::new(StubPasswordService {
+            verify_result: Ok(true),
+            hash_result: Ok(crate::models::user::PasswordHash::from_str_unchecked(
+                "hashed",
+            )),
+        });
+
+        let usecase = AuthCommandUseCaseImpl::new(tm, checker, ps);
+        let command = SignupCommand {
+            email: valid_email.clone(),
+            password: valid_password,
+        };
+
+        let result = usecase.signup(command).await;
+        assert!(matches!(
+            result,
+            Err(crate::error::DomainError::User(
+                crate::models::user::error::UserError::Uniqueness(
+                    UserUniquenessViolation::EmailAlreadyExists(_)
+                )
+            ))
+        ));
+    }
+}

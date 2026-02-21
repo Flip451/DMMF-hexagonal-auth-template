@@ -3,23 +3,25 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, From, Into, AsRef, Display,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    Serialize,
+    Deserialize,
+    From,
+    Into,
+    AsRef,
+    Display,
+    Default,
 )]
 pub struct UserId(Uuid);
 
 impl UserId {
     pub fn new() -> Self {
         Self(Uuid::new_v4())
-    }
-
-    pub fn into_inner(self) -> Uuid {
-        self.0
-    }
-}
-
-impl Default for UserId {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
@@ -31,6 +33,14 @@ mod tests {
     fn test_user_id_creation() {
         let uuid = Uuid::new_v4();
         let user_id = UserId::from(uuid);
-        assert_eq!(user_id.into_inner(), uuid);
+        let back: Uuid = user_id.into();
+        assert_eq!(uuid, back);
+    }
+
+    #[test]
+    fn test_user_id_display() {
+        let uuid = Uuid::new_v4();
+        let user_id = UserId::from(uuid);
+        assert_eq!(user_id.to_string(), uuid.to_string());
     }
 }

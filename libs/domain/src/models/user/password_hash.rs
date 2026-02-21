@@ -27,10 +27,6 @@ impl PasswordHash {
     pub fn from_str_unchecked(s: impl Into<String>) -> Self {
         Self(s.into())
     }
-
-    pub fn into_inner(self) -> String {
-        self.0
-    }
 }
 
 #[cfg(test)]
@@ -42,5 +38,13 @@ mod tests {
         let hash_str = "any_string_from_db";
         let hash = PasswordHash::from_str_unchecked(hash_str);
         assert_eq!(hash.to_string(), hash_str);
+    }
+
+    #[test]
+    fn test_password_hash_as_ref() {
+        let hash_str = "any_string_from_db";
+        let hash = PasswordHash::from_str_unchecked(hash_str);
+        let s: &str = hash.as_ref();
+        assert_eq!(s, hash_str);
     }
 }

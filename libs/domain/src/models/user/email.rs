@@ -13,12 +13,6 @@ pub enum EmailError {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Display, AsRef)]
 pub struct Email(String);
 
-impl Email {
-    pub fn into_inner(self) -> String {
-        self.0
-    }
-}
-
 impl TryFrom<String> for Email {
     type Error = EmailError;
 
@@ -56,5 +50,12 @@ mod tests {
             Ok(val) => assert_eq!(result.unwrap().to_string(), val),
             Err(e) => assert_eq!(result.unwrap_err(), e),
         }
+    }
+
+    #[test]
+    fn test_email_as_ref() {
+        let email = Email::try_from("test@example.com").unwrap();
+        let s: &str = email.as_ref();
+        assert_eq!(s, "test@example.com");
     }
 }

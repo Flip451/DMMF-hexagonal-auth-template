@@ -70,3 +70,81 @@ where
         .await
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::user::UserId;
+    use crate::usecase::auth::test_utils::utils::*;
+    use rstest::*;
+
+    #[rstest]
+    #[tokio::test]
+    async fn test_login_success(
+        valid_email: Email,
+        valid_password: String,
+        valid_password_hash: crate::models::user::PasswordHash,
+    ) {
+        let user = User {
+            id: UserId::new(),
+            email: valid_email.clone(),
+            password_hash: valid_password_hash.clone(),
+        };
+        let repo = Arc::new(StubUserRepository {
+            find_result: Ok(Some(user)),
+            save_result: Ok(()),
+        });
+        let factory = Arc::new(StubRepositoryFactory { repo });
+        let tm = Arc::new(StubTransactionManager { factory });
+        let ps = Arc::new(StubPasswordService {
+            verify_result: Ok(true),
+            hash_result: Ok(valid_password_hash),
+        });
+
+        let usecase = AuthQueryUseCaseImpl::new(tm, ps);
+        let result = usecase
+            .login(LoginQuery {
+                email: valid_email,
+                password: valid_password,
+            })
+            .await;
+        assert!(result.is_ok());
+    }
+
+    #[rstest]
+    #[tokio::test]
+    async fn test_login_invalid_credentials(valid_email: Email, valid_password: String) {
+        let user = User {
+            id: UserId::new(),
+            email: valid_email.clone(),
+            password_hash: crate::models::user::PasswordHash::from_str_unchecked("hashed"),
+        };
+        let repo = Arc::new(StubUserRepository {
+            find_result: Ok(Some(user)),
+            save_result: Ok(()),
+        });
+        let factory = Arc::new(StubRepositoryFactory { repo });
+        let tm = Arc::new(StubTransactionManager { factory });
+        let ps = Arc::new(StubPasswordService {
+            verify_result: Ok(false), // Password mismatch
+            hash_result: Ok(crate::models::user::PasswordHash::from_str_unchecked(
+                "hashed",
+            )),
+        });
+
+        let usecase = AuthQueryUseCaseImpl::new(tm, ps);
+        let result = usecase
+            .login(LoginQuery {
+                email: valid_email,
+                password: valid_password,
+            })
+            .await;
+
+        assert!(matches!(
+            result,
+            Err(crate::error::DomainError::Auth(
+                AuthError::InvalidCredentials
+            ))
+        ));
+    }
+}
