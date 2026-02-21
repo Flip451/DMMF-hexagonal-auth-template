@@ -60,15 +60,19 @@
   - [x] 不変条件を破壊する直接編集を防止
   - [x] トレイトによる抽象化（UserIdentity, Authenticatable）の導入
 
-### フェーズ 5: アプリケーション層と Web API (Axum)
+### フェーズ 5: アプリケーション層と Web API (Axum) [checkpoint: 7f10620]
 - [x] **Task: Axum ハンドラーの実実装** [b6f3dc1]
   - [x] UseCaseError の導入とインターフェース更新 [134d986]
   - [x] サインアップ, ログインエンドポイントの作成
   - [x] tracing を利用したログ出力の強化
-  - [ ] プロフィール取得エンドポイントの作成
-  - [ ] JWT 生成/検証ミドルウェアの実装
+  - [x] プロフィール取得エンドポイントの作成 [4b44cd5]
+  - [x] JWT 生成/検証ミドルウェアの実装 [4b44cd5]
 - [x] **Task: OpenAPI ドキュメントの設定** [2c5755e]
   - [x] utoipa を使用した Swagger 定義の追加
-- [ ] **Task: E2E テストの 記述**
-  - [ ] API 全体の結合テスト
-- [ ] **Task: Conductor - User Manual Verification 'フェーズ 5: アプリケーション層と Web API (Axum)' (Protocol in workflow.md)**
+  - [x] フィーチャーフラグによる optional 化 [7f10620]
+- [x] **Task: E2E テストの 記述** [7f10620]
+  - [x] API 全体の結合テスト
+- [x] **Task: Conductor - User Manual Verification 'フェーズ 5: アプリケーション層と Web API (Axum)' (Protocol in workflow.md)** [7f10620]
+
+## Phase: Review Fixes
+- [~] Task: Apply review suggestions
