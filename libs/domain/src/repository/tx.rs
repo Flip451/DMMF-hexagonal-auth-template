@@ -11,9 +11,9 @@ pub trait IntoTxError {
 }
 
 pub trait RepositoryFactory: Send + Sync {
-    fn user_repository(&self) -> Arc<dyn UserRepository>;
+    fn user_repository(&self) -> Arc<dyn UserRepository + '_>;
     // 将来的な拡張:
-    // fn outbox_repository(&self) -> Arc<dyn OutboxRepository>;
+    // fn outbox_repository(&self) -> Arc<dyn OutboxRepository + '_>;
 }
 
 #[async_trait]

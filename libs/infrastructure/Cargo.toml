@@ -7,6 +7,7 @@ edition = "2021"
 domain = { path = "../domain" }
 tokio = { workspace = true }
 async-trait = { workspace = true }
+futures-util = { workspace = true }
 sqlx = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }

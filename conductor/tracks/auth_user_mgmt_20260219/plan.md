@@ -43,12 +43,12 @@
   - [x] 関連するテストの更新
 
 ### フェーズ 4: インフラ層と永続化 (SQLx)
-- [ ] **Task: DB スキーマ設計とマイグレーション**
-  - [ ] `users` テーブルの作成 (migration クレート)
-- [ ] **Task: リポジトリのアダプター実装**
-  - [ ] SQLx を使用したユーザー情報の永続化実装
-  - [ ] ドメインモデルと DB エンティティの変換 (Mapping)
-- [ ] **Task: 統合テストの記述**
+- [x] **Task: DB スキーマ設計とマイグレーション** [a67a29f]
+  - [x] `users` テーブルの作成 (migration クレート)
+- [x] **Task: リポジトリのアダプター実装** [d214c25]
+  - [x] SQLx を使用したユーザー情報の永続化実装
+  - [x] ドメインモデルと DB エンティティの変換 (Mapping)
+- [~] **Task: 統合テストの記述**
   - [ ] DB コンテナを使用したリポジトリのテスト
 - [ ] **Task: Conductor - User Manual Verification 'フェーズ 4: インフラ層と永続化 (SQLx)' (Protocol in workflow.md)**
 
