@@ -1,7 +1,8 @@
 {
-  "id": "architectural_modernization_20260222",
-  "name": "Architectural Modernization",
-  "status": "pending",
-  "dependencies": ["reliable_infra_pattern_20260222", "auth_user_mgmt_20260219"],
-  "related_tracks": ["domain_test_refine_20260222"]
+  "track_id": "architectural_modernization_20260222",
+  "type": "refactor",
+  "status": "new",
+  "created_at": "2026-02-22T00:00:00Z",
+  "updated_at": "2026-02-22T00:00:00Z",
+  "description": "Architectural Modernization (Build Structure & Dependency Enforcement)"
 }
