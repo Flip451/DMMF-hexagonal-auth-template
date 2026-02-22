@@ -1,13 +1,15 @@
+use darling::{FromDeriveInput, FromField, FromVariant};
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput};
-use darling::{FromDeriveInput, FromField, FromVariant};
+use syn::{DeriveInput, parse_macro_input};
 
 #[derive(FromDeriveInput)]
 #[darling(attributes(entity))]
 struct EntityArgs {
     ident: syn::Ident,
     data: darling::ast::Data<EntityVariantArgs, EntityFieldArgs>,
+    #[darling(default)]
+    domain_path: Option<String>,
 }
 
 #[derive(FromField)]
@@ -34,20 +36,28 @@ pub fn derive_entity(input: TokenStream) -> TokenStream {
     };
 
     let name = &args.ident;
-    
-    // Smartly determine the crate path
-    let pkg_name = std::env::var("CARGO_PKG_NAME").ok();
-    let domain_path = if pkg_name.as_deref() == Some("domain") {
-        quote!(crate)
+
+    // Determine the crate path
+    let domain_path = if let Some(path_str) = args.domain_path {
+        let p: syn::Path = syn::parse_str(&path_str).expect("Invalid domain_path");
+        quote!(#p)
     } else {
-        quote!(::domain)
+        let pkg_name = std::env::var("CARGO_PKG_NAME").ok();
+        if pkg_name.as_deref() == Some("domain") {
+            quote!(crate)
+        } else {
+            quote!(::domain)
+        }
     };
 
     match &args.data {
         darling::ast::Data::Struct(fields) => {
             let id_field = fields.iter().find(|f| f.id);
             if let Some(id_field) = id_field {
-                let id_ident = id_field.ident.as_ref().expect("Entity field must have an identifier");
+                let id_ident = id_field
+                    .ident
+                    .as_ref()
+                    .expect("Entity field must have an identifier");
                 let id_type = &id_field.ty;
 
                 let expanded = quote! {
@@ -69,21 +79,30 @@ pub fn derive_entity(input: TokenStream) -> TokenStream {
                 };
                 TokenStream::from(expanded)
             } else {
-                TokenStream::from(darling::Error::custom("Entity must have a field marked with #[entity(id)]").write_errors())
+                TokenStream::from(
+                    darling::Error::custom("Entity must have a field marked with #[entity(id)]")
+                        .write_errors(),
+                )
             }
-        },
+        }
         darling::ast::Data::Enum(variants) => {
             let mut match_arms = Vec::new();
             let mut first_field_type = None;
 
             for variant in variants {
                 if variant.fields.len() != 1 {
-                    return TokenStream::from(darling::Error::custom("Enum variants for Entity must have exactly one field").with_span(&variant.ident).write_errors());
+                    return TokenStream::from(
+                        darling::Error::custom(
+                            "Enum variants for Entity must have exactly one field",
+                        )
+                        .with_span(&variant.ident)
+                        .write_errors(),
+                    );
                 }
                 let v_ident = &variant.ident;
                 let field = &variant.fields.fields[0];
                 let field_type = &field.ty;
-                
+
                 if first_field_type.is_none() {
                     first_field_type = Some(field_type.clone());
                 }
@@ -97,7 +116,7 @@ pub fn derive_entity(input: TokenStream) -> TokenStream {
                 let expanded = quote! {
                     impl #domain_path::Entity for #name {
                         type Id = <#field_type as #domain_path::Entity>::Id;
-                        
+
                         fn identity(&self) -> &Self::Id {
                             match self {
                                 #(#match_arms)*
@@ -116,7 +135,9 @@ pub fn derive_entity(input: TokenStream) -> TokenStream {
                 };
                 TokenStream::from(expanded)
             } else {
-                 TokenStream::from(darling::Error::custom("Enum must have at least one variant").write_errors())
+                TokenStream::from(
+                    darling::Error::custom("Enum must have at least one variant").write_errors(),
+                )
             }
         }
     }

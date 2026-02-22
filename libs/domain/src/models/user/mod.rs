@@ -10,10 +10,10 @@ pub use password_hash::{PasswordError, PasswordHash};
 pub use service::{UserUniquenessChecker, UserUniquenessViolation};
 pub use user_id::UserId;
 
+use crate::Entity;
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use crate::Entity;
 
 /// ユーザーの識別情報を表すトレイト。
 pub trait UserIdentity {

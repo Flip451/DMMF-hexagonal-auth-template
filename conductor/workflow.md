@@ -56,8 +56,8 @@ All tasks follow a strict lifecycle:
 
 9. **Commit Code Changes:**
    - Stage all code changes related to the task.
-   - Propose a clear, concise commit message.
-   - Perform the commit.
+   - **CRITICAL:** ALWAYS use the `cargo make commit` command to perform commits. This ensures that all required checks (formatting, linting, etc.) are executed before the commit is finalized.
+   - Provide a clear, concise message when prompted by the command.
 
 10. **Attach Task Summary with Git Notes:**
     - **Step 10.1: Get Commit Hash:** Obtain the hash of the *just-completed commit* (`git log -1 --format="%H"`).
