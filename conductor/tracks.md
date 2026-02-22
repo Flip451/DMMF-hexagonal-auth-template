@@ -4,11 +4,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [x] **Track: Advanced Observability & Security (Tracing PII Protection & Masking)**
-*Link: [./tracks/advanced_obs_security_20260222/](./tracks/advanced_obs_security_20260222/)*
-
----
-
 - [ ] **Track: Reliable Infrastructure Pattern (Outbox Pattern & Automatic Audit Columns)**
 *Link: [./tracks/reliable_infra_pattern_20260222/](./tracks/reliable_infra_pattern_20260222/)*
 
