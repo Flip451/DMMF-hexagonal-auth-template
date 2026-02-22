@@ -22,7 +22,13 @@ api = { path = "apps/api" }
 server = { path = "apps/server" }
 
 # Async
-tokio = { version = "1.49", features = ["rt-multi-thread", "macros", "net", "time", "signal"] }
+tokio = { version = "1.49", features = [
+    "rt-multi-thread",
+    "macros",
+    "net",
+    "time",
+    "signal",
+] }
 async-trait = "0.1"
 futures-util = "0.3"
 
@@ -41,7 +47,13 @@ http = "1.4.0"
 mime = "0.3.17"
 
 # DB
-sqlx = { version = "0.8", features = ["runtime-tokio", "postgres", "uuid", "chrono", "macros"] }
+sqlx = { version = "0.8", features = [
+    "runtime-tokio",
+    "postgres",
+    "uuid",
+    "chrono",
+    "macros",
+] }
 
 # Security
 argon2 = { version = "0.5", features = ["std"] }
@@ -56,7 +68,14 @@ opentelemetry_sdk = { version = "0.31", features = ["rt-tokio"] }
 opentelemetry-otlp = "0.31"
 
 # Utility
-derive_more = { version = "2", features = ["display", "from", "as_ref", "into", "try_into", "error"] }
+derive_more = { version = "2", features = [
+    "display",
+    "from",
+    "as_ref",
+    "into",
+    "try_into",
+    "error",
+] }
 uuid = { version = "1", features = ["v4", "v7", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 once_cell = "1.21.3"
