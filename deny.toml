@@ -1,0 +1,65 @@
+[graph]
+targets = []
+all-features = false
+no-default-features = false
+
+[output]
+feature-depth = 1
+
+[advisories]
+ignore = [
+    "RUSTSEC-2023-0071", # RSA Marvin Attack
+]
+
+[licenses]
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "Unicode-3.0",
+]
+confidence-threshold = 0.8
+exceptions = []
+
+[licenses.private]
+ignore = true
+
+[bans]
+multiple-versions = "warn"
+wildcards = "allow"
+highlight = "all"
+workspace-default-features = "allow"
+external-default-features = "allow"
+allow-workspace = false
+
+skip = [
+    "getrandom",
+    "hashbrown",
+    "windows-sys",
+    "windows-targets",
+    "windows_aarch64_gnullvm",
+    "windows_aarch64_msvc",
+    "windows_i686_gnu",
+    "windows_i686_msvc",
+    "windows_x86_64_gnu",
+    "windows_x86_64_gnullvm",
+    "windows_x86_64_msvc",
+]
+
+# レイヤー依存関係の強制
+# ホワイトリスト形式で、下位レイヤーへのアクセスを許可された上位レイヤーのみに制限します。
+deny = [
+    # 具象実装（infrastructure）は Composition Root（server）からのみアクセスを許可
+    { crate = "infrastructure", wrappers = ["server"], reason = "Infrastructure implementations must be encapsulated and only coupled at the server level." },
+    
+    # APIライブラリはサーバー本体（server）からのみアクセスを許可
+    { crate = "api", wrappers = ["server"], reason = "The API library should only be instantiated by the server binary." },
+    
+    # ユースケースは API, Infrastructure, Server からアクセスを許可（Domainからは禁止）
+    { crate = "usecase", wrappers = ["api", "infrastructure", "server"], reason = "UseCase layer must not be accessed by the Domain layer." },
+    
+    # ドメインはAPI層を除く上位すべてのレイヤーからアクセスを許可（自身や循環参照は禁止）
+    { crate = "domain", wrappers = ["usecase", "infrastructure", "server"], reason = "Domain models should be accessed through appropriate layer boundaries." },
+]

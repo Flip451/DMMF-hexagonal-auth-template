@@ -1,2 +1,1 @@
-#[cfg(test)]
-pub mod auth_e2e;
+// E2E tests have been moved to apps/server/tests

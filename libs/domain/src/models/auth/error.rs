@@ -1,6 +1,6 @@
-use crate::models::auth::PasswordServiceError;
-use crate::usecase::auth::AuthServiceError;
 use thiserror::Error;
+
+use crate::models::auth::PasswordServiceError;
 
 #[derive(Debug, Error)]
 pub enum AuthError {
@@ -12,7 +12,4 @@ pub enum AuthError {
 
     #[error("Password service failure")]
     PasswordService(#[from] PasswordServiceError),
-
-    #[error("Auth service failure")]
-    AuthService(#[from] AuthServiceError),
 }

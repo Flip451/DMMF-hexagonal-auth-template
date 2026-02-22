@@ -4,8 +4,8 @@ use axum::{
     extract::{FromRef, FromRequestParts},
     http::request::Parts,
 };
-use domain::usecase::auth::{AuthToken, Claims};
 use std::sync::Arc;
+use usecase::auth::{AuthToken, Claims};
 
 pub struct AuthenticatedUser(pub Claims);
 
@@ -36,7 +36,7 @@ where
         let claims = state
             .auth_service
             .verify_token(&token)
-            .map_err(|e| AppError::UseCase(e.into()))?;
+            .map_err(|e| AppError::UseCase(e.into()))?; // verify_token returns AuthServiceError, convert to UseCaseError
 
         Ok(AuthenticatedUser(claims))
     }

@@ -6,7 +6,6 @@ use self::response::LoginResponse;
 use crate::AppState;
 use crate::error::AppError;
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
-use domain::usecase::auth::AuthQueryUseCase;
 use std::sync::Arc;
 
 #[cfg_attr(feature = "openapi", utoipa::path(

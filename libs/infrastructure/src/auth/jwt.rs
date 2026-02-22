@@ -3,8 +3,9 @@ use std::sync::Arc;
 use chrono::Duration;
 use domain::clock::Clock;
 use domain::models::user::UserId;
-use domain::usecase::auth::{AuthService, AuthServiceError, AuthToken, Claims};
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
+use usecase::auth::{AuthService, AuthToken, Claims};
+use usecase::error::AuthServiceError;
 
 pub struct JwtAuthService<C: Clock> {
     encoding_key: EncodingKey,

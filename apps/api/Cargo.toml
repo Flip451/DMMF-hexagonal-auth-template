@@ -2,36 +2,31 @@
 name = "api"
 version = "0.1.0"
 edition = "2024"
+license = "MIT"
 
 [features]
 default = ["openapi"]
 openapi = ["dep:utoipa", "dep:utoipa-swagger-ui"]
 
 [dependencies]
-# 内部クレートの参照をワークスペース経由に整理
-domain = { workspace = true }
-infrastructure = { workspace = true }
+# 内部クレート: domain や infrastructure には依存しない
+usecase = { workspace = true }
 sensitive_data = { workspace = true }
 
-# その他の外部ライブラリは既存の構成を維持
-tokio = { workspace = true }
+# Web フレームワークと非同期
 axum = { workspace = true }
-async-trait = { workspace = true }
+tower-http = { workspace = true }
+
+# シリアライズとバリデーション
 serde = { workspace = true }
 serde_json = { workspace = true }
+
+# API ドキュメント
 utoipa = { workspace = true, optional = true }
 utoipa-swagger-ui = { workspace = true, optional = true }
+
+# ユーティリティ
 tracing = { workspace = true }
-tracing-subscriber = { workspace = true }
-tracing-opentelemetry = { workspace = true }
-opentelemetry = { workspace = true }
-opentelemetry_sdk = { workspace = true }
-opentelemetry-otlp = { workspace = true }
-anyhow = { workspace = true }
-dotenvy = { workspace = true }
-config = { workspace = true }
-tower-http = { workspace = true }
-sqlx = { workspace = true }
 uuid = { workspace = true }
 
 [dev-dependencies]
@@ -39,3 +34,5 @@ tower = { workspace = true }
 http = { workspace = true }
 mime = { workspace = true }
 rstest = { workspace = true }
+# テスト時のみ domain や infrastructure を使う可能性がある場合は server 経由にするか
+# モックを使用する

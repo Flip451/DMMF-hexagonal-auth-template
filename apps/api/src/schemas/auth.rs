@@ -1,9 +1,9 @@
 use serde::{Deserialize, Serialize};
+use usecase::auth::login::dto::LoginResponseDto;
+use usecase::auth::login::query::LoginQuery;
+use usecase::auth::signup::command::SignupCommand;
 use utoipa::ToSchema;
 use uuid::Uuid;
-use domain::usecase::auth::signup::command::SignupCommand;
-use domain::usecase::auth::login::query::LoginQuery;
-use domain::usecase::auth::login::dto::LoginResponseDTO;
 
 #[derive(Serialize, Deserialize, ToSchema)]
 pub struct SignupRequest {
@@ -14,8 +14,8 @@ pub struct SignupRequest {
 impl From<SignupRequest> for SignupCommand {
     fn from(req: SignupRequest) -> Self {
         Self {
-            email: req.email,
-            password: req.password,
+            email: req.email.into(),
+            password: req.password.into(),
         }
     }
 }
@@ -29,8 +29,8 @@ pub struct LoginRequest {
 impl From<LoginRequest> for LoginQuery {
     fn from(req: LoginRequest) -> Self {
         Self {
-            email: req.email,
-            password: req.password,
+            email: req.email.into(),
+            password: req.password.into(),
         }
     }
 }
@@ -42,12 +42,12 @@ pub struct LoginResponse {
     pub token: String,
 }
 
-impl From<LoginResponseDTO> for LoginResponse {
-    fn from(dto: LoginResponseDTO) -> Self {
+impl From<LoginResponseDto> for LoginResponse {
+    fn from(dto: LoginResponseDto) -> Self {
         Self {
             id: dto.id,
             email: dto.email,
-            token: dto.token,
+            token: dto.token.expose_as_str().to_string(),
         }
     }
 }

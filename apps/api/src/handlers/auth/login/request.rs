@@ -1,6 +1,6 @@
-use domain::usecase::auth::login::query::LoginQuery;
 use sensitive_data::{EmailRule, SecretRule, Sensitive};
 use serde::Deserialize;
+use usecase::auth::login::query::LoginQuery;
 
 #[derive(Debug, Deserialize)]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]

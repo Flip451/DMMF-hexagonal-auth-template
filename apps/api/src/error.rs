@@ -3,8 +3,8 @@ use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
 };
-use domain::usecase::error::UseCaseError;
 use serde_json::json;
+use usecase::error::UseCaseError;
 
 #[derive(Debug)]
 pub enum AppError {

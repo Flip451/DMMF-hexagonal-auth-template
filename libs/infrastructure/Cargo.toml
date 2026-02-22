@@ -2,9 +2,11 @@
 name = "infrastructure"
 version = "0.1.0"
 edition = "2024"
+license = "MIT"
 
 [dependencies]
 domain = { workspace = true }
+usecase = { workspace = true }
 sensitive_data = { workspace = true }
 tokio = { workspace = true }
 async-trait = { workspace = true }
@@ -12,12 +14,8 @@ futures-util = { workspace = true }
 sqlx = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
-opentelemetry = { workspace = true }
-opentelemetry_sdk = { workspace = true }
 anyhow = { workspace = true }
-thiserror = { workspace = true }
 uuid = { workspace = true }
 chrono = { workspace = true }
 argon2 = { workspace = true }
 jsonwebtoken = { workspace = true }
-once_cell = { workspace = true }

@@ -1,9 +1,5 @@
-use axum::{
-    Router,
-    routing::{get, post},
-};
+use api::{AppState, create_router};
 use domain::models::user::service::UserUniquenessCheckerImpl;
-use domain::usecase::auth::{AuthCommandUseCaseImpl, AuthQueryUseCaseImpl, AuthService};
 use infrastructure::auth::jwt::JwtAuthService;
 use infrastructure::auth::password::Argon2PasswordService;
 use infrastructure::clock::RealClock;
@@ -14,52 +10,21 @@ use sensitive_data::MaskingControl;
 use sqlx::postgres::PgPoolOptions;
 use std::env;
 use std::sync::Arc;
-use tower_http::trace::TraceLayer;
-
-mod error;
-mod handlers;
-pub mod middleware;
-mod openapi;
-#[cfg(test)]
-pub mod tests;
-
-pub struct AppState {
-    pub auth_command: Arc<
-        AuthCommandUseCaseImpl<
-            SqlxTransactionManager<RealClock>,
-            UserUniquenessCheckerImpl,
-            Argon2PasswordService,
-            RealClock,
-            UuidV7Generator,
-        >,
-    >,
-    pub auth_query: Arc<
-        AuthQueryUseCaseImpl<SqlxTransactionManager<RealClock>, Argon2PasswordService, RealClock>,
-    >,
-    pub auth_service: Arc<dyn AuthService>,
-}
+use usecase::auth::{AuthCommandUseCaseImpl, AuthQueryUseCaseImpl};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     // Load .env file
     dotenvy::dotenv().ok();
 
-    // Initialize telemetry with MaskingFormatter
-    init_telemetry("api");
+    // Initialize telemetry
+    init_telemetry("server");
 
-    // Configure masking control via environment variable
+    // Configure masking control
     let mask_enabled = env::var("MASK_SENSITIVE_DATA")
         .map(|v| v.to_lowercase() != "false")
         .unwrap_or(true);
     MaskingControl::set_enabled(mask_enabled);
-    tracing::info!(
-        "Sensitive data masking is {}",
-        if MaskingControl::is_enabled() {
-            "ENABLED"
-        } else {
-            "DISABLED"
-        }
-    );
 
     // Database connection
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
@@ -77,10 +42,9 @@ async fn main() -> anyhow::Result<()> {
     let tx_manager = Arc::new(SqlxTransactionManager::new(pool, clock.clone()));
     let uniqueness_checker = Arc::new(UserUniquenessCheckerImpl::new());
     let password_service = Arc::new(Argon2PasswordService::new());
-    let auth_service: Arc<dyn AuthService> =
-        Arc::new(JwtAuthService::new(&jwt_secret, clock.clone()));
+    let auth_service = Arc::new(JwtAuthService::new(&jwt_secret, clock.clone()));
 
-    // UseCase instantiation
+    // UseCase instantiation (Implementations from infrastructure/domain are injected here)
     let auth_command = Arc::new(AuthCommandUseCaseImpl::new(
         tx_manager.clone(),
         uniqueness_checker,
@@ -101,24 +65,7 @@ async fn main() -> anyhow::Result<()> {
         auth_service,
     });
 
-    // Router
-    let app = Router::new();
-
-    #[cfg(feature = "openapi")]
-    let app = {
-        use utoipa::OpenApi;
-        app.merge(
-            utoipa_swagger_ui::SwaggerUi::new("/swagger-ui")
-                .url("/api-docs/openapi.json", openapi::ApiDoc::openapi()),
-        )
-    };
-
-    let app = app
-        .route("/api/v1/auth/signup", post(handlers::auth::signup::signup))
-        .route("/api/v1/auth/login", post(handlers::auth::login::login))
-        .route("/api/v1/users/me", get(handlers::users::me::me))
-        .layer(TraceLayer::new_for_http())
-        .with_state(state);
+    let app = create_router(state);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await?;
     tracing::info!("listening on {}", listener.local_addr()?);

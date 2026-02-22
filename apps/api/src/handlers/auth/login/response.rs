@@ -1,6 +1,6 @@
-use domain::usecase::auth::login::dto::LoginResponseDto;
 use sensitive_data::{EmailRule, SecretRule, Sensitive};
 use serde::{Deserialize, Serialize};
+use usecase::auth::login::dto::LoginResponseDto;
 use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize)]

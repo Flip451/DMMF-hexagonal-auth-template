@@ -4,7 +4,6 @@ use self::request::SignupRequest;
 use crate::AppState;
 use crate::error::AppError;
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
-use domain::usecase::auth::AuthCommandUseCase;
 use std::sync::Arc;
 
 #[cfg_attr(feature = "openapi", utoipa::path(
