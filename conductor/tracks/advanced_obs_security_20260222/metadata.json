@@ -1,0 +1,7 @@
+{
+  "id": "advanced_obs_security_20260222",
+  "name": "Advanced Observability & Security",
+  "status": "pending",
+  "dependencies": ["auth_user_mgmt_20260219"],
+  "related_tracks": ["domain_test_refine_20260222"]
+}

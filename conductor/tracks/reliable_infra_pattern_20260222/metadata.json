@@ -1,0 +1,7 @@
+{
+  "id": "reliable_infra_pattern_20260222",
+  "name": "Reliable Infrastructure Pattern",
+  "status": "pending",
+  "dependencies": ["auth_user_mgmt_20260219"],
+  "related_tracks": ["domain_test_refine_20260222"]
+}

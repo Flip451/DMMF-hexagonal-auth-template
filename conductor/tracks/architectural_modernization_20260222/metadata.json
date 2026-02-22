@@ -1,0 +1,7 @@
+{
+  "id": "architectural_modernization_20260222",
+  "name": "Architectural Modernization",
+  "status": "pending",
+  "dependencies": ["reliable_infra_pattern_20260222", "auth_user_mgmt_20260219"],
+  "related_tracks": ["domain_test_refine_20260222"]
+}
