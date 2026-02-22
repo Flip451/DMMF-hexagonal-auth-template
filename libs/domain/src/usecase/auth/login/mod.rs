@@ -91,6 +91,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::id::IdGenerator;
     use crate::models::user::UserId;
     use crate::test_utils::FixedClock;
     use crate::usecase::auth::test_utils::utils::*;
@@ -104,8 +105,9 @@ mod tests {
         valid_password: String,
         valid_password_hash: crate::models::user::PasswordHash,
     ) {
+        let id_generator = crate::test_utils::MockIdGenerator::<UserId>::with_generated_ids(1);
         let user = User::new(
-            UserId::new(),
+            id_generator.generate(),
             valid_email.clone(),
             valid_password_hash.clone(),
         );
@@ -141,8 +143,9 @@ mod tests {
     #[rstest]
     #[tokio::test]
     async fn test_login_invalid_credentials(valid_email: Email, valid_password: String) {
+        let id_generator = crate::test_utils::MockIdGenerator::<UserId>::with_generated_ids(1);
         let user = User::new(
-            UserId::new(),
+            id_generator.generate(),
             valid_email.clone(),
             crate::models::user::PasswordHash::from_str_unchecked("hashed"),
         );

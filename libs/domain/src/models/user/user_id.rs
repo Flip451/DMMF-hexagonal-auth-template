@@ -20,9 +20,7 @@ use uuid::Uuid;
 pub struct UserId(Uuid);
 
 impl UserId {
-    pub fn new() -> Self {
-        Self(Uuid::new_v4())
-    }
+    // Explicitly removed new() to enforce IdGenerator
 }
 
 #[cfg(test)]

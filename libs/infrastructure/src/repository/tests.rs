@@ -1,4 +1,6 @@
+use crate::id::UuidV7Generator;
 use crate::repository::tx::SqlxTransactionManager;
+use domain::id::IdGenerator;
 use domain::models::user::{
     Authenticatable, Email, PasswordHash, User, UserId, UserIdentity, UserRepositoryError,
 };
@@ -8,8 +10,9 @@ use domain::repository::tx::TransactionManager;
 async fn test_save_and_find_user(pool: sqlx::PgPool) {
     let clock = std::sync::Arc::new(crate::clock::RealClock);
     let tm = SqlxTransactionManager::new(pool, clock);
+    let id_gen = UuidV7Generator::new();
 
-    let user_id = UserId::new();
+    let user_id: UserId = id_gen.generate();
     let email = Email::try_from("test@example.com").unwrap();
     let password_hash = PasswordHash::from_str_unchecked("hashed_pw");
     let user = User::new(user_id, email.clone(), password_hash);
@@ -72,15 +75,16 @@ async fn test_save_and_find_user(pool: sqlx::PgPool) {
 async fn test_duplicate_email_error(pool: sqlx::PgPool) {
     let clock = std::sync::Arc::new(crate::clock::RealClock);
     let tm = SqlxTransactionManager::new(pool, clock);
+    let id_gen = UuidV7Generator::new();
 
     let email = Email::try_from("duplicate@example.com").unwrap();
     let user1 = User::new(
-        UserId::new(),
+        id_gen.generate(),
         email.clone(),
         PasswordHash::from_str_unchecked("hash1"),
     );
     let user2 = User::new(
-        UserId::new(),
+        id_gen.generate(),
         email.clone(),
         PasswordHash::from_str_unchecked("hash2"),
     );
@@ -121,10 +125,11 @@ async fn test_duplicate_email_error(pool: sqlx::PgPool) {
 async fn test_transaction_rollback(pool: sqlx::PgPool) {
     let clock = std::sync::Arc::new(crate::clock::RealClock);
     let tm = SqlxTransactionManager::new(pool, clock);
+    let id_gen = UuidV7Generator::new();
 
     let email = Email::try_from("rollback@example.com").unwrap();
     let user = User::new(
-        UserId::new(),
+        id_gen.generate(),
         email.clone(),
         PasswordHash::from_str_unchecked("hash"),
     );

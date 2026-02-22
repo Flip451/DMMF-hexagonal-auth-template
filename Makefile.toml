@@ -79,15 +79,10 @@ command = "docker"
 args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "cargo", "sqlx", "prepare", "--", "--all-targets", "--all-features"]
 
 # アプリケーション操作 (appコンテナを使用)
-[tasks.run]
-description = "アプリケーションの実行"
+[tasks.bacon-test]
+description = "テストを継続的に実行 (baconを使用)"
 command = "docker"
-args = ["compose", "exec", "app", "cargo", "run"]
-
-[tasks.watch]
-description = "ホットリロード有効で実行 (baconを使用)"
-command = "docker"
-args = ["compose", "exec", "app", "bacon", "run", "--headless"]
+args = ["compose", "exec", "app", "bacon", "test", "--headless"]
 
 # CI/品質管理 (sqlx-cliコンテナを使用)
 [tasks.fmt]

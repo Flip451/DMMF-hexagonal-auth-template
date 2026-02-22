@@ -7,6 +7,7 @@ use std::sync::Arc;
 use self::command::SignupCommand;
 use self::dto::SignupResponseDTO;
 use crate::clock::Clock;
+use crate::id::IdGenerator;
 use crate::models::auth::PasswordService;
 use crate::models::user::{Email, User, UserId, UserUniquenessChecker};
 use crate::repository::tx::TransactionManager;
@@ -17,54 +18,61 @@ pub trait AuthCommandUseCase: Send + Sync {
     async fn signup(&self, command: SignupCommand) -> UseCaseResult<SignupResponseDTO>;
 }
 
-pub struct AuthCommandUseCaseImpl<TM, UC, PS, C>
+pub struct AuthCommandUseCaseImpl<TM, UC, PS, C, IG>
 where
     TM: TransactionManager,
     UC: UserUniquenessChecker,
     PS: PasswordService,
     C: Clock,
+    IG: IdGenerator<UserId>,
 {
     transaction_manager: Arc<TM>,
     user_uniqueness_checker: Arc<UC>,
     password_service: Arc<PS>,
     _clock: Arc<C>,
+    id_generator: Arc<IG>,
 }
 
-impl<TM, UC, PS, C> AuthCommandUseCaseImpl<TM, UC, PS, C>
+impl<TM, UC, PS, C, IG> AuthCommandUseCaseImpl<TM, UC, PS, C, IG>
 where
     TM: TransactionManager,
     UC: UserUniquenessChecker,
     PS: PasswordService,
     C: Clock,
+    IG: IdGenerator<UserId>,
 {
     pub fn new(
         transaction_manager: Arc<TM>,
         user_uniqueness_checker: Arc<UC>,
         password_service: Arc<PS>,
         clock: Arc<C>,
+        id_generator: Arc<IG>,
     ) -> Self {
         Self {
             transaction_manager,
             user_uniqueness_checker,
             password_service,
             _clock: clock,
+            id_generator,
         }
     }
 }
 
 #[async_trait]
-impl<TM, UC, PS, C> AuthCommandUseCase for AuthCommandUseCaseImpl<TM, UC, PS, C>
+impl<TM, UC, PS, C, IG> AuthCommandUseCase for AuthCommandUseCaseImpl<TM, UC, PS, C, IG>
 where
     TM: TransactionManager,
     UC: UserUniquenessChecker + 'static,
     PS: PasswordService + 'static,
     C: Clock + 'static,
+    IG: IdGenerator<UserId> + 'static,
 {
     async fn signup(&self, command: SignupCommand) -> UseCaseResult<SignupResponseDTO> {
         let email = Email::try_from(command.email)?;
 
         let checker = Arc::clone(&self.user_uniqueness_checker);
         let password_service = Arc::clone(&self.password_service);
+        let id_generator = Arc::clone(&self.id_generator);
 
         let password_hash = password_service.hash(&command.password).await?;
 
@@ -73,7 +81,7 @@ where
 
             checker.check_email_uniqueness(&*user_repo, &email).await?;
 
-            let user = User::new(UserId::new(), email, password_hash);
+            let user = User::new(id_generator.generate(), email, password_hash);
 
             user_repo.save(&user).await?;
 
@@ -89,7 +97,7 @@ where
 mod tests {
     use super::*;
     use crate::models::user::UserUniquenessViolation;
-    use crate::test_utils::FixedClock;
+    use crate::test_utils::{FixedClock, MockIdGenerator};
     use crate::usecase::auth::test_utils::utils::*;
     use crate::usecase::error::UseCaseError;
     use rstest::*;
@@ -115,8 +123,10 @@ mod tests {
             hash_result: Arc::new(move || Ok(valid_password_hash.clone())),
         });
         let clock = Arc::new(FixedClock::new(chrono::Utc::now()));
+        let id_generator = Arc::new(MockIdGenerator::<UserId>::with_generated_ids(1));
+        let expected_id = id_generator.expected_ids()[0];
 
-        let usecase = AuthCommandUseCaseImpl::new(tm, checker, ps, clock);
+        let usecase = AuthCommandUseCaseImpl::new(tm, checker, ps, clock, id_generator);
         let command = SignupCommand {
             email: valid_email.to_string(),
             password: valid_password,
@@ -124,7 +134,10 @@ mod tests {
 
         let result = usecase.signup(command).await;
         assert!(result.is_ok());
-        assert_eq!(result.unwrap().email, valid_email.to_string());
+        let response = result.unwrap();
+        assert_eq!(response.email, valid_email.to_string());
+        let expected_uuid: uuid::Uuid = expected_id.into();
+        assert_eq!(response.id, expected_uuid);
     }
 
     #[rstest]
@@ -152,8 +165,9 @@ mod tests {
             }),
         });
         let clock = Arc::new(FixedClock::new(chrono::Utc::now()));
+        let id_generator = Arc::new(MockIdGenerator::<UserId>::with_generated_ids(1));
 
-        let usecase = AuthCommandUseCaseImpl::new(tm, checker, ps, clock);
+        let usecase = AuthCommandUseCaseImpl::new(tm, checker, ps, clock, id_generator);
         let command = SignupCommand {
             email: valid_email.to_string(),
             password: valid_password,

@@ -44,8 +44,9 @@ opentelemetry-otlp = "0.31"
 
 # Utility
 derive_more = { version = "2", features = ["display", "from", "as_ref", "into", "try_into", "error"] }
-uuid = { version = "1", features = ["v4", "serde"] }
+uuid = { version = "1", features = ["v4", "v7", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
+dotenvy = "0.15.7"
 config = "0.15"
 mockall = "0.14"
 rstest = "0.26"

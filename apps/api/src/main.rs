@@ -8,6 +8,7 @@ use domain::usecase::auth::{AuthCommandUseCaseImpl, AuthQueryUseCaseImpl};
 use infrastructure::auth::jwt::JwtAuthService;
 use infrastructure::auth::password::Argon2PasswordService;
 use infrastructure::clock::RealClock;
+use infrastructure::id::UuidV7Generator;
 use infrastructure::repository::tx::SqlxTransactionManager;
 use sqlx::postgres::PgPoolOptions;
 use std::env;
@@ -29,6 +30,7 @@ pub struct AppState {
             UserUniquenessCheckerImpl,
             Argon2PasswordService,
             RealClock,
+            UuidV7Generator,
         >,
     >,
     pub auth_query: Arc<
@@ -39,6 +41,9 @@ pub struct AppState {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    // Load .env file
+    dotenvy::dotenv().ok();
+
     // Initialize tracing
     tracing_subscriber::registry()
         .with(tracing_subscriber::EnvFilter::new(
@@ -55,10 +60,11 @@ async fn main() -> anyhow::Result<()> {
         .await?;
 
     // JWT Secret
-    let jwt_secret = env::var("JWT_SECRET").unwrap_or_else(|_| "debug-secret".to_string());
+    let jwt_secret = env::var("JWT_SECRET").expect("JWT_SECRET must be set");
 
     // Infrastructure & Domain Services
     let clock = Arc::new(RealClock);
+    let id_generator = Arc::new(UuidV7Generator::new());
     let tx_manager = Arc::new(SqlxTransactionManager::new(pool, clock.clone()));
     let uniqueness_checker = Arc::new(UserUniquenessCheckerImpl::new());
     let password_service = Arc::new(Argon2PasswordService::new());
@@ -71,6 +77,7 @@ async fn main() -> anyhow::Result<()> {
         uniqueness_checker,
         password_service.clone(),
         clock.clone(),
+        id_generator,
     ));
     let auth_query = Arc::new(AuthQueryUseCaseImpl::new(
         tx_manager,

@@ -53,6 +53,7 @@ impl UserUniquenessChecker for UserUniquenessCheckerImpl {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::id::IdGenerator;
     use crate::models::user::{PasswordHash, User, UserId};
     use rstest::*;
 
@@ -98,11 +99,12 @@ mod tests {
         checker: UserUniquenessCheckerImpl,
         email: Email,
     ) {
-        let user = User {
-            id: UserId::new(),
-            email: email.clone(),
-            password_hash: PasswordHash::from_str_unchecked("hash"),
-        };
+        let id_generator = crate::test_utils::MockIdGenerator::<UserId>::with_generated_ids(1);
+        let user = User::new(
+            id_generator.generate(),
+            email.clone(),
+            PasswordHash::from_str_unchecked("hash"),
+        );
         let repo = StubUserRepository {
             found_user: Some(user),
         };

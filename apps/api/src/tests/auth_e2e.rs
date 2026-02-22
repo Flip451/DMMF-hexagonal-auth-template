@@ -18,6 +18,7 @@ mod e2e_tests {
 
     async fn setup_app(pool: sqlx::PgPool) -> axum::Router {
         let clock = Arc::new(infrastructure::clock::RealClock);
+        let id_generator = Arc::new(infrastructure::id::UuidV7Generator::new());
         let tx_manager = Arc::new(SqlxTransactionManager::new(pool, clock.clone()));
         let uniqueness_checker = Arc::new(UserUniquenessCheckerImpl::new());
         let password_service = Arc::new(Argon2PasswordService::new());
@@ -28,6 +29,7 @@ mod e2e_tests {
             uniqueness_checker,
             password_service.clone(),
             clock.clone(),
+            id_generator,
         ));
         let auth_query = Arc::new(AuthQueryUseCaseImpl::new(
             tx_manager,
