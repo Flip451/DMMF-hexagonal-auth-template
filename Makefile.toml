@@ -114,11 +114,16 @@ args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "cargo", "ch
 description = "CI 統合チェック (fmt, clippy, test, check)"
 dependencies = ["fmt", "clippy", "test", "check"]
 
-[tasks.commit]
-description = "CI チェック後にコミットを実行"
-dependencies = ["ci"]
+[tasks.add]
+description = "全変更をステージング"
 command = "git"
-args = ["commit"]
+args = ["add", "."]
+
+[tasks.commit]
+description = "CI チェック後に git add . とコミットを実行"
+dependencies = ["ci", "add"]
+command = "git"
+args = ["commit", "${@}"]
 
 [tasks.clean]
 description = "クリーンアップ"
