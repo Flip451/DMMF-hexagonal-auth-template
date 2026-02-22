@@ -1,30 +1,33 @@
-# Implementation Plan - Advanced Observability & Security (Tracing PII Protection & Masking)
+# Implementation Plan - Advanced Observability & Security (Tracing Sensitive Data Protection & Masking)
 
 ## 開発フェーズ
 
-### フェーズ 1: PII 識別基盤と隠蔽ロジックの実装 [checkpoint: 124b6a2]
-- [x] Task: PII マーカートレイトと部分隠蔽ロジックの定義
-    - [x] `libs/domain/src/sensitive_data.rs` を作成し、`SensitiveData` トレイトを定義
-    - [x] 文字列を部分隠蔽する純粋関数 `mask_email`, `mask_generic` の実装
-- [x] Task: マスキングロジックのユニットテスト (TDD)
-    - [x] 正常系（Email, Token）、境界値（極端に短い文字列）、異常系（空文字）のテストを記述 (Green)
-- [x] Task: 既存ドメインモデルへの適用
-    - [x] `Email`, `PasswordHash` 等に `SensitiveData` トレイトを実装
-- [x] Task: Conductor - User Manual Verification 'フェーズ 1: PII 識別基盤と隠蔽ロジックの実装' (Protocol in workflow.md)
+### フェーズ 1: `sensitive_data` 共通クレートの構築 [checkpoint: f4bd455]
+- [x] Task: 共通クレートのセットアップ
+    - [x] `libs/sensitive_data` クレートを新規作成し、ワークスペースに追加
+    - [x] `SensitiveData` トレイトと基本隠蔽ロジック（`EmailRule`, `PlainRule`, `SecretRule`）の実装
+- [x] Task: 汎用ラッパー `Sensitive<T, S>` の実装 (TDD)
+    - [x] `Sensitive<T, S>` の定義と、`MaskingControl` フラグに基づく `Debug`/`Display` 実装
+    - [x] シリアライズ/デシリアライズが透過的であることを検証するテスト
+- [x] Task: 動的制御（ハイブリッド）フラグの実装
+    - [x] グローバルなアトミックフラグによるマスキング有効化/無効化の仕組みを導入
+- [x] Task: Conductor - User Manual Verification 'フェーズ 1: sensitive_data 共通クレートの構築' (Protocol in workflow.md)
 
-### フェーズ 2: カスタム Tracing レイヤーの実装
-- [ ] Task: `PiiMaskingLayer` の実装
-    - [ ] `libs/infrastructure/src/telemetry/masking.rs` を作成
-    - [ ] `tracing_subscriber::Layer` を実装し、イベント属性のビジター（Visitor）パターンでマスキングを適用
-- [ ] Task: テレメトリ統合テスト (TDD)
-    - [ ] カスタムレイヤーを適用した状態で `tracing::info!` を呼び出し、出力がマスクされることを検証するテストを記述 (Red)
-    - [ ] `PiiMaskingLayer` のロジックを完成させ、テストをパスさせる (Green)
-- [ ] Task: Conductor - User Manual Verification 'フェーズ 2: カスタム Tracing レイヤーの実装' (Protocol in workflow.md)
+### フェーズ 2: 各レイヤーへの統合（ドメインと API）
+- [ ] Task: ドメインモデルの更新
+    - [ ] `Email`, `PasswordHash` に `SensitiveData` を実装
+    - [ ] `SensitiveDebug` マクロにより `Debug` 出力時に `libs/sensitive_data` の設定を参照するように修正
+- [ ] Task: API 層の DTO への適用
+    - [ ] `apps/api` の DTO において、`String` を `Sensitive<String, EmailRule>` 等に置き換え
+- [ ] Task: 多層的な隠蔽の検証テスト
+    - [ ] ドメイン型と DTO 型の両方が、環境設定に応じて正しく隠蔽/露出されることを確認
+- [ ] Task: Conductor - User Manual Verification 'フェーズ 2: 各レイヤーへの統合（ドメインと API）' (Protocol in workflow.md)
 
-### フェーズ 3: 動的制御とグローバル統合
-- [ ] Task: 設定による有効/無効の切り替え
-    - [ ] アプリケーション設定（`config`）に `telemetry.mask_pii` 項目を追加
-    - [ ] `libs/infrastructure/src/telemetry.rs` で設定値に基づきレイヤーの挿入を制御
-- [ ] Task: 全体統合の動作確認
-    - [ ] ローカル環境と Jaeger (OpenTelemetry) 出力の両方でマスキングが適用されることを確認
-- [ ] Task: Conductor - User Manual Verification 'フェーズ 3: 動的制御とグローバル統合' (Protocol in workflow.md)
+### フェーズ 3: インフラ層の統合と最終調整
+- [ ] Task: `MaskingFormatter` の実装
+    - [ ] `infrastructure` 層で、型情報の欠落したフィールド名（名前ベース）に対するフォールバック保護を実装
+- [ ] Task: 設定ファイル（config）との連携
+    - [ ] アプリケーション起動時に `telemetry.mask_sensitive_data` を読み込み、`libs/sensitive_data` のフラグを初期化する
+- [ ] Task: E2E 統合テスト
+    - [ ] Jaeger (OpenTelemetry) 等の実際の出力において機密情報が保護されていることを確認
+- [ ] Task: Conductor - User Manual Verification 'フェーズ 3: インフラ層の統合と最終調整' (Protocol in workflow.md)
