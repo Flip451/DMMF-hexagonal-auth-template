@@ -4,10 +4,11 @@
 
 1. **The Plan is the Source of Truth:** All work must be tracked in `plan.md`
 2. **The Tech Stack is Deliberate:** Changes to the tech stack must be documented in `tech-stack.md` *before* implementation
-3. **Test-Driven Development:** Write unit tests before implementing functionality
-4. **High Code Coverage:** Aim for >80% code coverage for all modules
-5. **User Experience First:** Every decision should prioritize user experience
-6. **Non-Interactive & CI-Aware:** Prefer non-interactive commands. Use `CI=true` for watch-mode tools (tests, linters) to ensure single execution.
+3. **Context Efficiency:** Maintain a lean context window. Use **Sub-agents** (e.g., `codebase_investigator`) for deep research to avoid polluting the main context with raw source code, and use **Skills** (e.g., `postgresql-design-guidelines`) only when performing specialized tasks.
+4. **Test-Driven Development:** Write unit tests before implementing functionality
+5. **High Code Coverage:** Aim for >80% code coverage for all modules
+6. **User Experience First:** Every decision should prioritize user experience
+7. **Non-Interactive & CI-Aware:** Prefer non-interactive commands. Use `CI=true` for watch-mode tools (tests, linters) to ensure single execution.
 
 ## Task Workflow
 
@@ -15,12 +16,18 @@ All tasks follow a strict lifecycle:
 
 ### Standard Task Workflow
 
-1. **Select Task:** Choose the next available task from `plan.md` in sequential order
+1. **Select Task & Research:**
+   - Choose the next available task from `plan.md` in sequential order.
+   - **Research (Lean Context):** If the task requires understanding existing code or complex dependencies, use the `codebase_investigator` sub-agent. Do NOT read multiple large files directly into the main context. Use the sub-agent's report to guide your implementation.
 
 2. **Mark In Progress:** Before beginning work, edit `plan.md` and change the task from `[ ]` to `[~]`
 
 3. **Design Documentation (Mandatory):**
    - Before implementing any changes, create or update a design document (e.g., `design.md` or a task-specific design file) in the track folder.
+   - **Activate Specialized Skills:** If the design involves a domain covered by a skill (e.g., database schema changes), activate that skill NOW:
+     ```bash
+     /skills activate postgresql-design-guidelines
+     ```
    - Use **Mermaid** or **PlantUML** to visualize the architecture, class structures, or sequence flows.
    - Ensure the design is reviewed (at least by self-analysis) to align with the project's architectural principles (DMMF, Hexagonal, etc.).
 
@@ -29,47 +36,44 @@ All tasks follow a strict lifecycle:
    - Write one or more unit tests that clearly define the expected behavior and acceptance criteria for the task.
    - **CRITICAL:** Run the tests and confirm that they fail as expected. This is the "Red" phase of TDD. Do not proceed until you have failing tests.
 
-4. **Implement to Pass Tests (Green Phase):**
+5. **Implement to Pass Tests (Green Phase):**
    - Write the minimum amount of application code necessary to make the failing tests pass.
+   - **Consult Skills:** Use the activated skill's guidelines (e.g., naming, data types) during implementation.
    - Run the test suite again and confirm that all tests now pass. This is the "Green" phase.
 
-5. **Refactor (Optional but Recommended):**
+6. **Refactor (Optional but Recommended):**
    - With the safety of passing tests, refactor the implementation code and the test code to improve clarity, remove duplication, and enhance performance without changing the external behavior.
    - Rerun tests to ensure they still pass after refactoring.
 
-6. **Verify Coverage:** Run coverage reports using the project's chosen tools. For example, in a Python project, this might look like:
-   ```bash
-   pytest --cov=app --cov-report=html
-   ```
-   Target: >80% coverage for new code. The specific tools and commands will vary by language and framework.
+7. **Verify Coverage:** Run coverage reports using the project's chosen tools.
+   Target: >80% coverage for new code.
 
-7. **Document Deviations:** If implementation differs from tech stack:
+8. **Document Deviations:** If implementation differs from tech stack:
    - **STOP** implementation
    - Update `tech-stack.md` with new design
    - Add dated note explaining the change
    - Resume implementation
 
-8. **Commit Code Changes:**
+9. **Commit Code Changes:**
    - Stage all code changes related to the task.
-   - Propose a clear, concise commit message e.g, `feat(ui): Create basic HTML structure for calculator`.
+   - Propose a clear, concise commit message.
    - Perform the commit.
 
-9. **Attach Task Summary with Git Notes:**
-   - **Step 9.1: Get Commit Hash:** Obtain the hash of the *just-completed commit* (`git log -1 --format="%H"`).
-   - **Step 9.2: Draft Note Content:** Create a detailed summary for the completed task. This should include the task name, a summary of changes, a list of all created/modified files, and the core "why" for the change.
-   - **Step 9.3: Attach Note:** Use the `git notes` command to attach the summary to the commit.
-     ```bash
-     # The note content from the previous step is passed via the -m flag.
-     git notes add -m "<note content>" <commit_hash>
-     ```
+10. **Attach Task Summary with Git Notes:**
+    - **Step 10.1: Get Commit Hash:** Obtain the hash of the *just-completed commit* (`git log -1 --format="%H"`).
+    - **Step 10.2: Draft Note Content:** Create a detailed summary for the completed task. This should include the task name, a summary of changes, a list of all created/modified files, and the core "why" for the change.
+    - **Step 10.3: Attach Note:** Use the `git notes` command to attach the summary to the commit.
 
-10. **Get and Record Task Commit SHA:**
-    - **Step 10.1: Update Plan:** Read `plan.md`, find the line for the completed task, update its status from `[~]` to `[x]`, and append the first 7 characters of the *just-completed commit's* commit hash.
-    - **Step 10.2: Write Plan:** Write the updated content back to `plan.md`.
+11. **Get and Record Task Commit SHA:**
+    - **Step 11.1: Update Plan:** Read `plan.md`, find the line for the completed task, update status to `[x]`, and append the 7-char hash.
+    - **Step 11.2: Write Plan.**
 
-11. **Commit Plan Update:**
-    - **Action:** Stage the modified `plan.md` file.
-    - **Action:** Commit this change with a descriptive message (e.g., `conductor(plan): Mark task 'Create user model' as complete`).
+12. **Commit Plan Update:**
+    - **Action:** Stage and commit the modified `plan.md`.
+
+13. **Context Cleanup & Skill Release:**
+    - **Action:** If a specialized skill (e.g., `postgresql-design-guidelines`) was activated for this task, explicitly state that its specialized guidance is no longer required for subsequent tasks to keep the context focused.
+    - **Action:** If the conversation has become long (>20 messages), suggest starting a new session to fully clear the context before the next task.
 
 ### Phase Completion Verification and Checkpointing Protocol
 
@@ -146,6 +150,7 @@ Before marking any task complete, verify:
 - [ ] All tests pass
 - [ ] Code coverage meets requirements (>80%)
 - [ ] Code follows project's code style guidelines (as defined in `code_styleguides/`)
+- [ ] Database design and migrations adhere to `postgresql-design-guidelines`
 - [ ] All public functions/methods are documented (e.g., docstrings, JSDoc, GoDoc)
 - [ ] Type safety is enforced (e.g., type hints, TypeScript types, Go types)
 - [ ] No linting or static analysis errors (using the project's configured tools)
