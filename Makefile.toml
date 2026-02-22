@@ -109,11 +109,6 @@ args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "cargo", "ch
 description = "CI 統合チェック (fmt, clippy, test, check)"
 dependencies = ["fmt", "clippy", "test", "check"]
 
-[tasks.add]
-description = "全変更をステージング"
-command = "git"
-args = ["add", "."]
-
 [tasks.commit]
 description = "CI チェック後にコミットを実行"
 dependencies = ["ci"]
