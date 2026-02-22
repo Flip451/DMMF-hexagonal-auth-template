@@ -115,8 +115,8 @@ command = "git"
 args = ["add", "."]
 
 [tasks.commit]
-description = "CI チェック後に git add . とコミットを実行"
-dependencies = ["ci", "add"]
+description = "CI チェック後にコミットを実行"
+dependencies = ["ci"]
 command = "git"
 args = ["commit", "-m", "${@}"]
 
