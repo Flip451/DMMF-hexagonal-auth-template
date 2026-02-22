@@ -9,5 +9,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Create README.md (Bilingual)**
+- [~] **Track: Create README.md (Bilingual)**
 *Link: [./tracks/create_readme_20260222/](./tracks/create_readme_20260222/)*

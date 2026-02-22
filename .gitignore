@@ -18,3 +18,6 @@ Thumbs.db
 
 # SQLx
 .sqlx/
+
+# Gemini CLI Skills (Contains third-party content)
+.gemini/skills/

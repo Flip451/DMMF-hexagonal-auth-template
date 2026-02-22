@@ -51,6 +51,9 @@ services:
       - .:/app
       - cargo_cache:/usr/local/cargo/registry
       - cli_target_cache:/app/target
+    depends_on:
+      db:
+        condition: service_healthy
     profiles: ["tools"]
     networks:
       - app-network

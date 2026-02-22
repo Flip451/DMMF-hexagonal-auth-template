@@ -1,20 +1,20 @@
 # Implementation Plan: README.md の作成
 
 ## フェーズ 1: 基本構成とプロジェクト紹介 (Introduction & Basics)
-- [ ] Task: プロジェクトビジョンと技術スタックの記述 (日・英)
-    - [ ] `product.md` と `tech-stack.md` から主要な情報を抽出
-    - [ ] プロジェクトの目的とコア原則を執筆
-- [ ] Task: ディレクトリ構造の解説 (日・英)
-    - [ ] `apps/` (server, api) および `libs/` (domain, usecase, infrastructure, etc.) の役割を明文化
-- [ ] Task: Conductor - User Manual Verification 'フェーズ 1: 基本構成' (Protocol in workflow.md)
+- [x] Task: プロジェクトビジョンと技術スタックの記述 (日・英)
+    - [x] `product.md` と `tech-stack.md` から主要な情報を抽出
+    - [x] プロジェクトの目的とコア原則を執筆
+- [x] Task: ディレクトリ構造の解説 (日・英)
+    - [x] `apps/` (server, api) および `libs/` (domain, usecase, infrastructure, etc.) の役割を明文化
+- [x] Task: Conductor - User Manual Verification 'フェーズ 1: 基本構成' (Protocol in workflow.md)
 
 ## フェーズ 2: アーキテクチャとロードマップ (Architecture & Roadmap)
-- [ ] Task: アーキテクチャの詳細解説 (日・英)
-    - [ ] DMMF、ヘキサゴナル、叫ぶアーキテクチャの適用例を解説
-    - [ ] 依存関係の強制ルール (Composition Root 等) について触れる
-- [ ] Task: ロードマップの記述 (日・英)
-    - [ ] Outbox パターン、管理機能、ユーザーライフサイクルの計画を記載
-- [ ] Task: Conductor - User Manual Verification 'フェーズ 2: アーキテクチャ' (Protocol in workflow.md)
+- [x] Task: アーキテクチャの詳細解説 (日・英)
+    - [x] DMMF、ヘキサゴナル、叫ぶアーキテクチャの適用例を解説
+    - [x] 依存関係の強制ルール (Composition Root 等) について触れる
+- [x] Task: ロードマップの記述 (日・英)
+    - [x] Outbox パターン、管理機能、ユーザーライフサイクルの計画を記載
+- [x] Task: Conductor - User Manual Verification 'フェーズ 2: アーキテクチャ' (Protocol in workflow.md)
 
 ## フェーズ 3: 開発ガイドとワークフロー (Developer Guide)
 - [ ] Task: セットアップ手順の記述 (日・英)
