@@ -18,7 +18,8 @@ derive_more = { workspace = true }
 uuid = { workspace = true }
 chrono = { workspace = true }
 tracing = { workspace = true }
-domain_macros = { path = "../domain_macros" }
+domain_macros = { workspace = true }
+sensitive_data = { workspace = true }
 
 [dev-dependencies]
 mockall = { workspace = true }

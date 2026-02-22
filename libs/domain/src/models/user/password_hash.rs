@@ -1,4 +1,5 @@
-use crate::sensitive_data::{SensitiveData, mask_generic};
+use sensitive_data::{PlainRule, SensitiveData};
+use crate::SensitiveDebug;
 use derive_more::{AsRef, Display};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -17,7 +18,7 @@ pub enum PasswordError {
 ///
 /// セキュリティ上の理由から、安易な生成（TryFrom等）は提供せず、
 /// 基本的に `PasswordService` を介して生成されることを想定する。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Display, AsRef)]
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize, Display, AsRef, SensitiveDebug)]
 pub struct PasswordHash(String);
 
 impl PasswordHash {
@@ -32,7 +33,11 @@ impl PasswordHash {
 
 impl SensitiveData for PasswordHash {
     fn to_masked_string(&self) -> String {
-        mask_generic(&self.0)
+        Self::mask_raw(&self.0)
+    }
+
+    fn mask_raw(input: &str) -> String {
+        PlainRule::mask_raw(input)
     }
 }
 
@@ -59,5 +64,6 @@ mod tests {
     fn test_password_hash_masking() {
         let hash = PasswordHash::from_str_unchecked("v1.longpasswordhashvalue");
         assert_eq!(hash.to_masked_string(), "v1.***lue");
+        assert_eq!(format!("{:?}", hash), "\"v1.***lue\"");
     }
 }

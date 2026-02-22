@@ -2,12 +2,20 @@
 members = [
     "libs/domain",
     "libs/infrastructure",
+    "libs/domain_macros",
+    "libs/sensitive_data",
     "apps/api",
-    "migration", "libs/domain_macros", "libs/sensitive_data",
+    "migration",
 ]
 resolver = "2"
 
 [workspace.dependencies]
+# Internal Libs
+domain = { path = "libs/domain" }
+infrastructure = { path = "libs/infrastructure" }
+domain_macros = { path = "libs/domain_macros" }
+sensitive_data = { path = "libs/sensitive_data" }
+
 # Async
 tokio = { version = "1.49", features = ["rt-multi-thread", "macros", "net", "time", "signal"] }
 async-trait = "0.1"

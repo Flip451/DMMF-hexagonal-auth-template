@@ -8,8 +8,12 @@ default = ["openapi"]
 openapi = ["dep:utoipa", "dep:utoipa-swagger-ui"]
 
 [dependencies]
-domain = { path = "../../libs/domain" }
-infrastructure = { path = "../../libs/infrastructure" }
+# 内部クレートの参照をワークスペース経由に整理
+domain = { workspace = true }
+infrastructure = { workspace = true }
+sensitive_data = { workspace = true }
+
+# その他の外部ライブラリは既存の構成を維持
 tokio = { workspace = true }
 axum = { workspace = true }
 async-trait = { workspace = true }
@@ -35,5 +39,3 @@ tower = { workspace = true }
 http = { workspace = true }
 mime = { workspace = true }
 rstest = { workspace = true }
-# E2Eテストでは openapi フィーチャーが有効であることを前提とする場合が多いですが、
-# 必要に応じて個別に設定します。

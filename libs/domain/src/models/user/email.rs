@@ -1,4 +1,5 @@
-use crate::sensitive_data::{SensitiveData, mask_email};
+use sensitive_data::{EmailRule, SensitiveData};
+use crate::SensitiveDebug;
 use derive_more::{AsRef, Display};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -11,7 +12,8 @@ pub enum EmailError {
     InvalidFormat,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Display, AsRef)]
+/// ユーザーのメールアドレスを表す値オブジェクト。
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize, Display, AsRef, SensitiveDebug)]
 pub struct Email(String);
 
 impl TryFrom<String> for Email {
@@ -38,7 +40,11 @@ impl TryFrom<&str> for Email {
 
 impl SensitiveData for Email {
     fn to_masked_string(&self) -> String {
-        mask_email(&self.0)
+        Self::mask_raw(&self.0)
+    }
+
+    fn mask_raw(input: &str) -> String {
+        EmailRule::mask_raw(input)
     }
 }
 
@@ -70,5 +76,7 @@ mod tests {
     fn test_email_masking() {
         let email = Email::try_from("test@example.com").unwrap();
         assert_eq!(email.to_masked_string(), "t***@example.com");
+        // SensitiveDebug マクロによる Debug 出力の検証
+        assert_eq!(format!("{:?}", email), "\"t***@example.com\"");
     }
 }

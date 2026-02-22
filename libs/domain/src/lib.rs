@@ -10,8 +10,8 @@ pub mod test_utils;
 pub mod usecase;
 
 pub use clock::Clock;
-pub use domain_macros::Entity;
+pub use domain_macros::{Entity, SensitiveDebug};
 pub use entity::Entity;
 pub use error::{DomainError, DomainResult};
 pub use id::IdGenerator;
-pub use sensitive_data::SensitiveData;
+pub use sensitive_data::{Sensitive, SensitiveData};

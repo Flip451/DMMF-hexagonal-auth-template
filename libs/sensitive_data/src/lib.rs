@@ -23,6 +23,9 @@ impl MaskingControl {
 
 /// 機密情報の隠蔽ルールを定義するトレイト。
 pub trait SensitiveData {
+    /// インスタンスの値を隠蔽した文字列を返します。
+    fn to_masked_string(&self) -> String;
+
     /// 隠蔽ルールを静的に適用します。
     fn mask_raw(input: &str) -> String;
 }
@@ -83,6 +86,10 @@ impl<T: fmt::Display, S: SensitiveData> fmt::Display for Sensitive<T, S> {
 pub struct PlainRule;
 
 impl SensitiveData for PlainRule {
+    fn to_masked_string(&self) -> String {
+        String::new() // マーカー型なので中身はない
+    }
+
     fn mask_raw(input: &str) -> String {
         mask_generic(input)
     }
@@ -93,6 +100,10 @@ impl SensitiveData for PlainRule {
 pub struct EmailRule;
 
 impl SensitiveData for EmailRule {
+    fn to_masked_string(&self) -> String {
+        String::new()
+    }
+
     fn mask_raw(input: &str) -> String {
         mask_email(input)
     }
@@ -103,6 +114,10 @@ impl SensitiveData for EmailRule {
 pub struct SecretRule;
 
 impl SensitiveData for SecretRule {
+    fn to_masked_string(&self) -> String {
+        String::new()
+    }
+
     fn mask_raw(_input: &str) -> String {
         "***".to_string()
     }
@@ -134,7 +149,6 @@ pub fn mask_generic(input: &str) -> String {
         return "*".repeat(len);
     }
 
-    // 10文字を超える場合は3文字ずつ残す、それ以外は1文字ずつ残す
     let visible_count = if len > 10 { 3 } else { 1 };
 
     let start: String = chars.iter().take(visible_count).collect();
@@ -152,8 +166,8 @@ mod tests {
     #[case("test@example.com", "t***@example.com")]
     #[case("a@b.com", "a***@b.com")]
     #[case("info@sub.domain.com", "i***@sub.domain.com")]
-    #[case("@no-local", "@***l")] // @が先頭の場合は mask_generic に行き、10文字以下なので1文字ずつ残る
-    #[case("no-at-sign", "n***n")] // @がない場合は mask_generic に行き、10文字以下なので1文字ずつ残る
+    #[case("@no-local", "@***l")]
+    #[case("no-at-sign", "n***n")]
     #[case("", "")]
     fn test_mask_email(#[case] input: &str, #[case] expected: &str) {
         assert_eq!(mask_email(input), expected);
@@ -171,7 +185,7 @@ mod tests {
     #[case("あ", "*")]
     #[case("あいう", "***")]
     #[case("あいうえ", "あ***え")]
-    #[case("あいうえおかきくけこさ", "あいう***けこさ")] // 11文字なので3文字ずつ残る
+    #[case("あいうえおかきくけこさ", "あいう***けこさ")]
     fn test_mask_generic(#[case] input: &str, #[case] expected: &str) {
         assert_eq!(mask_generic(input), expected);
     }

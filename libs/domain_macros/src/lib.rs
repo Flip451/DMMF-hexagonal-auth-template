@@ -142,3 +142,27 @@ pub fn derive_entity(input: TokenStream) -> TokenStream {
         }
     }
 }
+
+#[proc_macro_derive(SensitiveDebug)]
+pub fn derive_sensitive_debug(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    let name = &input.ident;
+
+    let pkg_name = std::env::var("CARGO_PKG_NAME").ok();
+    let domain_path = if pkg_name.as_deref() == Some("domain") {
+        quote!(crate)
+    } else {
+        quote!(::domain)
+    };
+
+    let expanded = quote! {
+        impl std::fmt::Debug for #name {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                use #domain_path::SensitiveData;
+                write!(f, "\"{}\"", self.to_masked_string())
+            }
+        }
+    };
+
+    TokenStream::from(expanded)
+}
