@@ -1,24 +1,27 @@
-use domain::usecase::auth::login::dto::LoginResponseDTO;
+use domain::usecase::auth::login::dto::LoginResponseDto;
+use sensitive_data::{EmailRule, SecretRule, Sensitive};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub struct LoginResponse {
     /// ユーザーID (UUID)
     pub id: Uuid,
     /// メールアドレス
-    pub email: String,
+    #[cfg_attr(feature = "openapi", schema(value_type = String))]
+    pub email: Sensitive<String, EmailRule>,
     /// アクセストークン (JWT)
-    pub token: String,
+    #[cfg_attr(feature = "openapi", schema(value_type = String))]
+    pub token: Sensitive<String, SecretRule>,
 }
 
-impl From<LoginResponseDTO> for LoginResponse {
-    fn from(dto: LoginResponseDTO) -> Self {
+impl From<LoginResponseDto> for LoginResponse {
+    fn from(dto: LoginResponseDto) -> Self {
         Self {
             id: dto.id,
-            email: dto.email,
-            token: dto.token,
+            email: dto.email.into(),
+            token: dto.token.expose_as_str().to_string().into(),
         }
     }
 }

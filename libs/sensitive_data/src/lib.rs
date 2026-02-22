@@ -51,6 +51,21 @@ impl<T, S> Sensitive<T, S> {
     pub fn into_inner(self) -> T {
         self.inner
     }
+
+    pub fn as_inner(&self) -> &T {
+        &self.inner
+    }
+}
+
+// T が AsRef<str> を実装している場合（String や &str など）のユーティリティ
+impl<T: AsRef<str>, S> Sensitive<T, S> {
+    pub fn is_empty(&self) -> bool {
+        self.inner.as_ref().is_empty()
+    }
+
+    pub fn len(&self) -> usize {
+        self.inner.as_ref().len()
+    }
 }
 
 impl<T, S> From<T> for Sensitive<T, S> {
@@ -87,7 +102,7 @@ pub struct PlainRule;
 
 impl SensitiveData for PlainRule {
     fn to_masked_string(&self) -> String {
-        String::new() // マーカー型なので中身はない
+        String::new()
     }
 
     fn mask_raw(input: &str) -> String {
@@ -120,6 +135,21 @@ impl SensitiveData for SecretRule {
 
     fn mask_raw(_input: &str) -> String {
         "***".to_string()
+    }
+}
+
+/// 完全に隠蔽するルール（SecretRule のエイリアスまたは同等の振る舞い）。
+/// トークン等に明示的に使用します。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct TokenRule;
+
+impl SensitiveData for TokenRule {
+    fn to_masked_string(&self) -> String {
+        String::new()
+    }
+
+    fn mask_raw(input: &str) -> String {
+        SecretRule::mask_raw(input)
     }
 }
 
@@ -193,10 +223,10 @@ mod tests {
     #[test]
     fn test_masking_control_toggle() {
         let sensitive = Sensitive::<String, PlainRule>::new("secretvalue".to_string());
-        
+
         MaskingControl::set_enabled(true);
         assert_eq!(format!("{:?}", sensitive), "\"sec***lue\"");
-        
+
         MaskingControl::set_enabled(false);
         assert_eq!(format!("{:?}", sensitive), "\"secretvalue\"");
     }
@@ -206,7 +236,7 @@ mod tests {
         let sensitive = Sensitive::<String, PlainRule>::new("secret".to_string());
         let json = serde_json::to_string(&sensitive).unwrap();
         assert_eq!(json, "\"secret\"");
-        
+
         let back: Sensitive<String, PlainRule> = serde_json::from_str(&json).unwrap();
         assert_eq!(back.into_inner(), "secret");
     }
@@ -215,8 +245,22 @@ mod tests {
     #[case::plain(Sensitive::<String, PlainRule>::new("12345678".to_string()), "\"1***8\"")]
     #[case::email(Sensitive::<String, EmailRule>::new("test@example.com".to_string()), "\"t***@example.com\"")]
     #[case::secret(Sensitive::<String, SecretRule>::new("topsecret".to_string()), "\"***\"")]
-    fn test_rules_via_wrapper(#[case] sensitive: Sensitive<String, impl SensitiveData>, #[case] expected: &str) {
+    #[case::token(Sensitive::<String, TokenRule>::new("token123".to_string()), "\"***\"")]
+    fn test_rules_via_wrapper(
+        #[case] sensitive: Sensitive<String, impl SensitiveData>,
+        #[case] expected: &str,
+    ) {
         MaskingControl::set_enabled(true);
         assert_eq!(format!("{:?}", sensitive), expected);
+    }
+
+    #[test]
+    fn test_sensitive_utils() {
+        let s = Sensitive::<String, PlainRule>::new("abc".to_string());
+        assert_eq!(s.len(), 3);
+        assert!(!s.is_empty());
+
+        let empty = Sensitive::<String, PlainRule>::new("".to_string());
+        assert!(empty.is_empty());
     }
 }

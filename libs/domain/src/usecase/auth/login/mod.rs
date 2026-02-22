@@ -4,17 +4,18 @@ pub mod query;
 use async_trait::async_trait;
 use std::sync::Arc;
 
-use self::dto::LoginResponseDTO;
-use self::query::LoginQuery;
+use self::dto::LoginResponseDto;
+pub use self::query::LoginQuery;
 use crate::clock::Clock;
-use crate::models::auth::{AuthError, AuthService, PasswordService};
+use crate::models::auth::{AuthError, PasswordService, RawPassword};
 use crate::models::user::{Authenticatable, Email, User, UserIdentity};
 use crate::repository::tx::TransactionManager;
+use crate::usecase::auth::AuthService;
 use crate::usecase::error::UseCaseResult;
 
 #[async_trait]
 pub trait AuthQueryUseCase: Send + Sync {
-    async fn login(&self, query: LoginQuery) -> UseCaseResult<LoginResponseDTO>;
+    async fn login(&self, query: LoginQuery) -> UseCaseResult<LoginResponseDto>;
 }
 
 pub struct AuthQueryUseCaseImpl<TM, PS, C>
@@ -57,8 +58,8 @@ where
     PS: PasswordService + 'static,
     C: Clock + 'static,
 {
-    async fn login(&self, query: LoginQuery) -> UseCaseResult<LoginResponseDTO> {
-        let email = Email::try_from(query.email)?;
+    async fn login(&self, query: LoginQuery) -> UseCaseResult<LoginResponseDto> {
+        let email = Email::try_from(query.email.into_inner())?;
         let password_service = Arc::clone(&self.password_service);
 
         let user = crate::tx!(self.transaction_manager, |factory| {
@@ -70,7 +71,10 @@ where
                 .ok_or(AuthError::InvalidCredentials)?;
 
             let is_valid = password_service
-                .verify(&query.password, user.password_hash())
+                .verify(
+                    &RawPassword::from(query.password.into_inner()),
+                    user.password_hash(),
+                )
                 .await?;
 
             if !is_valid {
@@ -84,7 +88,7 @@ where
         // ユースケース内でトークンを発行
         let token = self.auth_service.issue_token(user.id())?;
 
-        Ok(LoginResponseDTO::new(&user, token))
+        Ok(LoginResponseDto::new(&user, token))
     }
 }
 
@@ -94,6 +98,7 @@ mod tests {
     use crate::id::IdGenerator;
     use crate::models::user::UserId;
     use crate::test_utils::FixedClock;
+    use crate::usecase::auth::AuthToken;
     use crate::usecase::auth::test_utils::utils::*;
     use crate::usecase::error::UseCaseError;
     use rstest::*;
@@ -122,7 +127,7 @@ mod tests {
             hash_result: Arc::new(move || Ok(valid_password_hash.clone())),
         });
         let auth_service = Arc::new(StubAuthService {
-            issue_token_result: Arc::new(|| Ok("test-token".to_string())),
+            issue_token_result: Arc::new(|| Ok(AuthToken::from("test-token".to_string()))),
             verify_token_result: Arc::new(|| unreachable!()),
         });
         let clock = Arc::new(FixedClock::new(chrono::Utc::now()));
@@ -130,14 +135,14 @@ mod tests {
         let usecase = AuthQueryUseCaseImpl::new(tm, ps, auth_service, clock);
         let result = usecase
             .login(LoginQuery {
-                email: valid_email.to_string(),
-                password: valid_password,
+                email: valid_email.to_string().into(),
+                password: valid_password.into(),
             })
             .await;
         assert!(result.is_ok());
         let response = result.unwrap();
         assert_eq!(response.email, valid_email.to_string());
-        assert_eq!(response.token, "test-token");
+        assert_eq!(response.token.expose_as_str(), "test-token");
     }
 
     #[rstest]
@@ -172,8 +177,8 @@ mod tests {
         let usecase = AuthQueryUseCaseImpl::new(tm, ps, auth_service, clock);
         let result = usecase
             .login(LoginQuery {
-                email: valid_email.to_string(),
-                password: valid_password,
+                email: valid_email.to_string().into(),
+                password: valid_password.into(),
             })
             .await;
 

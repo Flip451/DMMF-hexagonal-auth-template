@@ -1,13 +1,16 @@
 use domain::usecase::auth::login::query::LoginQuery;
-use serde::{Deserialize, Serialize};
+use sensitive_data::{EmailRule, SecretRule, Sensitive};
+use serde::Deserialize;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub struct LoginRequest {
-    /// メールアドレス
-    pub email: String,
+    /// ユーザーのメールアドレス
+    #[cfg_attr(feature = "openapi", schema(value_type = String))]
+    pub email: Sensitive<String, EmailRule>,
     /// パスワード
-    pub password: String,
+    #[cfg_attr(feature = "openapi", schema(value_type = String))]
+    pub password: Sensitive<String, SecretRule>,
 }
 
 impl From<LoginRequest> for LoginQuery {

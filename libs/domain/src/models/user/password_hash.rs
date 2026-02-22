@@ -1,6 +1,6 @@
-use sensitive_data::{PlainRule, SensitiveData};
 use crate::SensitiveDebug;
 use derive_more::{AsRef, Display};
+use sensitive_data::{SecretRule, SensitiveData};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -37,7 +37,8 @@ impl SensitiveData for PasswordHash {
     }
 
     fn mask_raw(input: &str) -> String {
-        PlainRule::mask_raw(input)
+        // パスワードハッシュも一切の情報を露出させないため、SecretRule（完全隠蔽）を適用
+        SecretRule::mask_raw(input)
     }
 }
 
@@ -63,7 +64,8 @@ mod tests {
     #[test]
     fn test_password_hash_masking() {
         let hash = PasswordHash::from_str_unchecked("v1.longpasswordhashvalue");
-        assert_eq!(hash.to_masked_string(), "v1.***lue");
-        assert_eq!(format!("{:?}", hash), "\"v1.***lue\"");
+        // 完全隠蔽されていることを確認
+        assert_eq!(hash.to_masked_string(), "***");
+        assert_eq!(format!("{:?}", hash), "\"***\"");
     }
 }

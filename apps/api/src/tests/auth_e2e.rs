@@ -117,7 +117,10 @@ mod e2e_tests {
                 Request::builder()
                     .method(http::Method::GET)
                     .uri("/api/v1/users/me")
-                    .header(http::header::AUTHORIZATION, format!("Bearer {}", token))
+                    .header(
+                        http::header::AUTHORIZATION,
+                        format!("Bearer {}", token.as_inner()),
+                    )
                     .body(Body::empty())
                     .unwrap(),
             )

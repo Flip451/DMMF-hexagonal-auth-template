@@ -2,9 +2,8 @@ use axum::{
     Router,
     routing::{get, post},
 };
-use domain::models::auth::AuthService;
 use domain::models::user::service::UserUniquenessCheckerImpl;
-use domain::usecase::auth::{AuthCommandUseCaseImpl, AuthQueryUseCaseImpl};
+use domain::usecase::auth::{AuthCommandUseCaseImpl, AuthQueryUseCaseImpl, AuthService};
 use infrastructure::auth::jwt::JwtAuthService;
 use infrastructure::auth::password::Argon2PasswordService;
 use infrastructure::clock::RealClock;

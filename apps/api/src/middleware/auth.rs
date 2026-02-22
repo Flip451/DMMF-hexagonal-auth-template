@@ -4,9 +4,10 @@ use axum::{
     extract::{FromRef, FromRequestParts},
     http::request::Parts,
 };
+use domain::usecase::auth::{AuthToken, Claims};
 use std::sync::Arc;
 
-pub struct AuthenticatedUser(pub domain::models::auth::Claims);
+pub struct AuthenticatedUser(pub Claims);
 
 impl<S> FromRequestParts<S> for AuthenticatedUser
 where
@@ -28,10 +29,13 @@ where
             return Err(AppError::InvalidAuthFormat);
         }
 
-        let token = &auth_header[7..];
+        // 文字列から AuthToken へ変換
+        let token_str = &auth_header[7..];
+        let token = AuthToken::from(token_str.to_string());
+
         let claims = state
             .auth_service
-            .verify_token(token)
+            .verify_token(&token)
             .map_err(|e| AppError::UseCase(e.into()))?;
 
         Ok(AuthenticatedUser(claims))

@@ -1,16 +1,16 @@
 use crate::models::user::{User, UserIdentity};
+use crate::usecase::auth::AuthToken;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LoginResponseDTO {
-    pub id: Uuid,
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LoginResponseDto {
+    pub id: uuid::Uuid,
     pub email: String,
-    pub token: String,
+    pub token: AuthToken,
 }
 
-impl LoginResponseDTO {
-    pub fn new(user: &User, token: String) -> Self {
+impl LoginResponseDto {
+    pub fn new(user: &User, token: AuthToken) -> Self {
         Self {
             id: user.id().into(),
             email: user.email().to_string(),

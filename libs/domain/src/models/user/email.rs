@@ -1,6 +1,6 @@
-use sensitive_data::{EmailRule, SensitiveData};
 use crate::SensitiveDebug;
 use derive_more::{AsRef, Display};
+use sensitive_data::{EmailRule, SensitiveData};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 

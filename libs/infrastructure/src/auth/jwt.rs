@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use chrono::Duration;
 use domain::clock::Clock;
-use domain::models::auth::{AuthService, AuthServiceError, Claims};
 use domain::models::user::UserId;
+use domain::usecase::auth::{AuthService, AuthServiceError, AuthToken, Claims};
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
 
 pub struct JwtAuthService<C: Clock> {
@@ -23,7 +23,7 @@ impl<C: Clock> JwtAuthService<C> {
 }
 
 impl<C: Clock> AuthService for JwtAuthService<C> {
-    fn issue_token(&self, user_id: UserId) -> Result<String, AuthServiceError> {
+    fn issue_token(&self, user_id: UserId) -> Result<AuthToken, AuthServiceError> {
         let now = self.clock.now();
         let iat = now.timestamp() as usize;
         let exp = (now + Duration::hours(24)).timestamp() as usize;
@@ -35,20 +35,25 @@ impl<C: Clock> AuthService for JwtAuthService<C> {
         };
 
         encode(&Header::default(), &claims, &self.encoding_key)
-            .map_err(|e| AuthServiceError::IssuanceFailed(e.into()))
+            .map(AuthToken::from)
+            .map_err(|e| AuthServiceError::IssuanceFailed(anyhow::Error::from(e)))
     }
 
-    fn verify_token(&self, token: &str) -> Result<Claims, AuthServiceError> {
-        decode::<Claims>(token, &self.decoding_key, &Validation::default())
-            .map(|data| data.claims)
-            .map_err(|e| match *e.kind() {
-                jsonwebtoken::errors::ErrorKind::ExpiredSignature => AuthServiceError::TokenExpired,
-                jsonwebtoken::errors::ErrorKind::InvalidToken
-                | jsonwebtoken::errors::ErrorKind::InvalidSignature
-                | jsonwebtoken::errors::ErrorKind::InvalidIssuer
-                | jsonwebtoken::errors::ErrorKind::InvalidAudience
-                | jsonwebtoken::errors::ErrorKind::InvalidSubject => AuthServiceError::InvalidToken,
-                _ => AuthServiceError::VerificationFailed(e.into()),
-            })
+    fn verify_token(&self, token: &AuthToken) -> Result<Claims, AuthServiceError> {
+        decode::<Claims>(
+            token.expose_as_str(),
+            &self.decoding_key,
+            &Validation::default(),
+        )
+        .map(|data| data.claims)
+        .map_err(|e| match *e.kind() {
+            jsonwebtoken::errors::ErrorKind::ExpiredSignature => AuthServiceError::TokenExpired,
+            jsonwebtoken::errors::ErrorKind::InvalidToken
+            | jsonwebtoken::errors::ErrorKind::InvalidSignature
+            | jsonwebtoken::errors::ErrorKind::InvalidIssuer
+            | jsonwebtoken::errors::ErrorKind::InvalidAudience
+            | jsonwebtoken::errors::ErrorKind::InvalidSubject => AuthServiceError::InvalidToken,
+            _ => AuthServiceError::VerificationFailed(anyhow::Error::from(e)),
+        })
     }
 }

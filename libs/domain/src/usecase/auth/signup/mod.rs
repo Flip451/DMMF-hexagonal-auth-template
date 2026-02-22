@@ -4,11 +4,11 @@ pub mod dto;
 use async_trait::async_trait;
 use std::sync::Arc;
 
-use self::command::SignupCommand;
+pub use self::command::SignupCommand;
 use self::dto::SignupResponseDTO;
 use crate::clock::Clock;
 use crate::id::IdGenerator;
-use crate::models::auth::PasswordService;
+use crate::models::auth::{PasswordService, RawPassword};
 use crate::models::user::{Email, User, UserId, UserUniquenessChecker};
 use crate::repository::tx::TransactionManager;
 use crate::usecase::error::UseCaseResult;
@@ -68,13 +68,15 @@ where
     IG: IdGenerator<UserId> + 'static,
 {
     async fn signup(&self, command: SignupCommand) -> UseCaseResult<SignupResponseDTO> {
-        let email = Email::try_from(command.email)?;
+        let email = Email::try_from(command.email.into_inner())?;
 
         let checker = Arc::clone(&self.user_uniqueness_checker);
         let password_service = Arc::clone(&self.password_service);
         let id_generator = Arc::clone(&self.id_generator);
 
-        let password_hash = password_service.hash(&command.password).await?;
+        let password_hash = password_service
+            .hash(&RawPassword::from(command.password.into_inner()))
+            .await?;
 
         let user = crate::tx!(self.transaction_manager, |factory| {
             let user_repo = factory.user_repository();
@@ -128,8 +130,8 @@ mod tests {
 
         let usecase = AuthCommandUseCaseImpl::new(tm, checker, ps, clock, id_generator);
         let command = SignupCommand {
-            email: valid_email.to_string(),
-            password: valid_password,
+            email: valid_email.to_string().into(),
+            password: valid_password.into(),
         };
 
         let result = usecase.signup(command).await;
@@ -169,8 +171,8 @@ mod tests {
 
         let usecase = AuthCommandUseCaseImpl::new(tm, checker, ps, clock, id_generator);
         let command = SignupCommand {
-            email: valid_email.to_string(),
-            password: valid_password,
+            email: valid_email.to_string().into(),
+            password: valid_password.into(),
         };
 
         let result = usecase.signup(command).await;

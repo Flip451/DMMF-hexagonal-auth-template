@@ -1,8 +1,10 @@
 use crate::error::DomainError;
-use crate::models::auth::{AuthError, AuthServiceError, PasswordServiceError};
+use crate::models::auth::PasswordServiceError;
+use crate::models::auth::error::AuthError;
 use crate::models::user::{
     EmailError, PasswordError, UserError, UserRepositoryError, UserUniquenessViolation,
 };
+use crate::usecase::auth::AuthServiceError;
 use thiserror::Error;
 
 #[derive(Debug, Error)]

@@ -1,4 +1,5 @@
-use crate::models::auth::{AuthServiceError, PasswordServiceError};
+use crate::models::auth::PasswordServiceError;
+use crate::usecase::auth::AuthServiceError;
 use thiserror::Error;
 
 #[derive(Debug, Error)]

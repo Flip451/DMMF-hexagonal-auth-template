@@ -1,13 +1,12 @@
 #[cfg(test)]
 pub mod utils {
-    use crate::models::auth::{
-        AuthService, AuthServiceError, Claims, PasswordService, PasswordServiceError,
-    };
+    use crate::models::auth::{PasswordService, PasswordServiceError, RawPassword};
     use crate::models::user::{
         Email, PasswordHash, User, UserRepository, UserRepositoryError, UserUniquenessChecker,
         UserUniquenessViolation,
     };
     use crate::repository::tx::{IntoTxError, RepositoryFactory, TransactionManager};
+    use crate::usecase::auth::{AuthService, AuthServiceError, AuthToken, Claims};
     use async_trait::async_trait;
     use futures_util::future::BoxFuture;
     use rstest::*;
@@ -86,18 +85,18 @@ pub mod utils {
     impl PasswordService for StubPasswordService {
         async fn verify(
             &self,
-            _pw: &str,
+            _pw: &RawPassword,
             _hash: &PasswordHash,
         ) -> Result<bool, PasswordServiceError> {
             (self.verify_result)()
         }
-        async fn hash(&self, _pw: &str) -> Result<PasswordHash, PasswordServiceError> {
+        async fn hash(&self, _pw: &RawPassword) -> Result<PasswordHash, PasswordServiceError> {
             (self.hash_result)()
         }
     }
 
     pub struct StubAuthService {
-        pub issue_token_result: TestResult<String, AuthServiceError>,
+        pub issue_token_result: TestResult<AuthToken, AuthServiceError>,
         pub verify_token_result: TestResult<Claims, AuthServiceError>,
     }
     #[async_trait]
@@ -105,10 +104,10 @@ pub mod utils {
         fn issue_token(
             &self,
             _user_id: crate::models::user::UserId,
-        ) -> Result<String, AuthServiceError> {
+        ) -> Result<AuthToken, AuthServiceError> {
             (self.issue_token_result)()
         }
-        fn verify_token(&self, _token: &str) -> Result<Claims, AuthServiceError> {
+        fn verify_token(&self, _token: &AuthToken) -> Result<Claims, AuthServiceError> {
             (self.verify_token_result)()
         }
     }
