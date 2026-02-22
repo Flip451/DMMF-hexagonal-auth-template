@@ -22,18 +22,18 @@
     - [x] `AuthUseCase` に `IdGenerator` を注入し、UUID v7 生成を適用する (Green)
 - [x] **Task: Conductor - User Manual Verification 'フェーズ 2: ID 生成の抽象化と UUID v7 への移行' (Protocol in workflow.md)**
 
-### フェーズ 3: DDD Entity 用 derive マクロの実装
-- [ ] **Task: `domain_macros` クレートのセットアップ**
-    - [ ] ワークスペースに新しい `proc-macro` クレート `libs/domain_macros` を作成
-- [ ] **Task: Entity derive マクロの実装 (Struct 対応)**
-    - [ ] `#[entity(id)]` 属性を解析し、そのフィールドに基づく `PartialEq`, `Eq` を実装するマクロを作成
-    - [ ] `User` 構造体に適用し、ID のみで比較されることをテストで確認
-- [ ] **Task: Entity derive マクロの実装 (Enum 対応)**
-    - [ ] 単一引数タプルバリアントを要求し、内部型に identity を委譲するロジックの実装
-- [ ] **Task: Conductor - User Manual Verification 'フェーズ 3: DDD Entity 用 derive マクロの実装' (Protocol in workflow.md)**
+### フェーズ 3: DDD Entity 用 derive マクロの実装 [checkpoint: bf675ae]
+- [x] **Task: `domain_macros` クレートのセットアップ**
+    - [x] ワークスペースに新しい `proc-macro` クレート `libs/domain_macros` を作成
+- [x] **Task: Entity derive マクロの実装 (Struct 対応)**
+    - [x] `#[entity(id)]` 属性を解析し、そのフィールドに基づく `PartialEq`, `Eq` を実装するマクロを作成
+    - [x] `User` 構造体に適用し、ID のみで比較されることをテストで確認
+- [x] **Task: Entity derive マクロの実装 (Enum 対応)**
+    - [x] 単一引数タプルバリアントを要求し、内部型に identity を委譲するロジックの実装
+- [x] **Task: Conductor - User Manual Verification 'フェーズ 3: DDD Entity 用 derive マクロの実装' (Protocol in workflow.md)**
 
-### フェーズ 4: リファクタリングと最終調整
-- [ ] **Task: 全ドメインモデルへの適用とボイラープレート削除**
-    - [ ] `User` モデルおよび関連モデル의 `PartialEq` 手動実装を削除し、マクロに置き換える
-    - [ ] コードベース全体の `Utc::now()` 使用箇所を `Clock` 経由に統一
-- [ ] **Task: Conductor - User Manual Verification 'フェーズ 4: リファクタリングと最終調整' (Protocol in workflow.md)**
+### フェーズ 4: リファクタリングと最終調整 [checkpoint: bf675ae]
+- [x] **Task: 全ドメインモデルへの適用とボイラープレート削除**
+    - [x] `User` モデルおよび関連モデルの PartialEq 手動実装を削除し、マクロに置き換える
+    - [x] コードベース全体の `Utc::now()` 使用箇所を `Clock` 経由に統一
+- [x] **Task: Conductor - User Manual Verification 'フェーズ 4: リファクタリングと最終調整' (Protocol in workflow.md)**
