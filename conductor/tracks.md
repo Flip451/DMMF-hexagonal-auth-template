@@ -9,7 +9,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Domain & Testability Refinement (IdGenerator/Clock abstraction, UUID v7, and DDD Entity derive macros)**
+- [~] **Track: Domain & Testability Refinement (IdGenerator/Clock abstraction, UUID v7, and DDD Entity derive macros)**
 *Link: [./tracks/domain_test_refine_20260222/](./tracks/domain_test_refine_20260222/)*
 
 ---

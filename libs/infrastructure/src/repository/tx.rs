@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use domain::clock::Clock;
 use domain::repository::tx::{IntoTxError, RepositoryFactory, TransactionManager};
 use futures_util::future::BoxFuture;
 use sqlx::{Pool, Postgres, Transaction};
@@ -8,28 +9,33 @@ use tokio::sync::Mutex;
 
 use crate::repository::user_adapter::SqlxUserRepoAdapter;
 
-pub struct SqlxRepositoryFactory<'a> {
+pub struct SqlxRepositoryFactory<'a, C: Clock> {
     transaction: Arc<Mutex<Option<Transaction<'a, Postgres>>>>,
+    clock: Arc<C>,
 }
 
-impl<'a> RepositoryFactory for SqlxRepositoryFactory<'a> {
+impl<'a, C: Clock> RepositoryFactory for SqlxRepositoryFactory<'a, C> {
     fn user_repository(&self) -> Arc<dyn domain::models::user::UserRepository + '_> {
-        Arc::new(SqlxUserRepoAdapter::new(Arc::clone(&self.transaction)))
+        Arc::new(SqlxUserRepoAdapter::new(
+            Arc::clone(&self.transaction),
+            Arc::clone(&self.clock),
+        ))
     }
 }
 
-pub struct SqlxTransactionManager {
+pub struct SqlxTransactionManager<C: Clock> {
     pool: Pool<Postgres>,
+    clock: Arc<C>,
 }
 
-impl SqlxTransactionManager {
-    pub fn new(pool: Pool<Postgres>) -> Self {
-        Self { pool }
+impl<C: Clock> SqlxTransactionManager<C> {
+    pub fn new(pool: Pool<Postgres>, clock: Arc<C>) -> Self {
+        Self { pool, clock }
     }
 }
 
 #[async_trait]
-impl TransactionManager for SqlxTransactionManager {
+impl<C: Clock> TransactionManager for SqlxTransactionManager<C> {
     async fn execute<T, E, F>(&self, f: F) -> Result<T, E>
     where
         T: Send,
@@ -41,6 +47,7 @@ impl TransactionManager for SqlxTransactionManager {
         let transaction = Arc::new(Mutex::new(Some(tx)));
         let factory = SqlxRepositoryFactory {
             transaction: Arc::clone(&transaction),
+            clock: Arc::clone(&self.clock),
         };
 
         let result = f(&factory).await;

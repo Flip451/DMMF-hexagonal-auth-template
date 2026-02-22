@@ -6,6 +6,7 @@ use std::sync::Arc;
 
 use self::dto::LoginResponseDTO;
 use self::query::LoginQuery;
+use crate::clock::Clock;
 use crate::models::auth::{AuthError, AuthService, PasswordService};
 use crate::models::user::{Authenticatable, Email, User, UserIdentity};
 use crate::repository::tx::TransactionManager;
@@ -16,39 +17,45 @@ pub trait AuthQueryUseCase: Send + Sync {
     async fn login(&self, query: LoginQuery) -> UseCaseResult<LoginResponseDTO>;
 }
 
-pub struct AuthQueryUseCaseImpl<TM, PS>
+pub struct AuthQueryUseCaseImpl<TM, PS, C>
 where
     TM: TransactionManager,
     PS: PasswordService,
+    C: Clock,
 {
     transaction_manager: Arc<TM>,
     password_service: Arc<PS>,
     auth_service: Arc<dyn AuthService>,
+    _clock: Arc<C>,
 }
 
-impl<TM, PS> AuthQueryUseCaseImpl<TM, PS>
+impl<TM, PS, C> AuthQueryUseCaseImpl<TM, PS, C>
 where
     TM: TransactionManager,
     PS: PasswordService,
+    C: Clock,
 {
     pub fn new(
         transaction_manager: Arc<TM>,
         password_service: Arc<PS>,
         auth_service: Arc<dyn AuthService>,
+        clock: Arc<C>,
     ) -> Self {
         Self {
             transaction_manager,
             password_service,
             auth_service,
+            _clock: clock,
         }
     }
 }
 
 #[async_trait]
-impl<TM, PS> AuthQueryUseCase for AuthQueryUseCaseImpl<TM, PS>
+impl<TM, PS, C> AuthQueryUseCase for AuthQueryUseCaseImpl<TM, PS, C>
 where
     TM: TransactionManager,
     PS: PasswordService + 'static,
+    C: Clock + 'static,
 {
     async fn login(&self, query: LoginQuery) -> UseCaseResult<LoginResponseDTO> {
         let email = Email::try_from(query.email)?;
@@ -85,6 +92,7 @@ where
 mod tests {
     use super::*;
     use crate::models::user::UserId;
+    use crate::test_utils::FixedClock;
     use crate::usecase::auth::test_utils::utils::*;
     use crate::usecase::error::UseCaseError;
     use rstest::*;
@@ -115,8 +123,9 @@ mod tests {
             issue_token_result: Arc::new(|| Ok("test-token".to_string())),
             verify_token_result: Arc::new(|| unreachable!()),
         });
+        let clock = Arc::new(FixedClock::new(chrono::Utc::now()));
 
-        let usecase = AuthQueryUseCaseImpl::new(tm, ps, auth_service);
+        let usecase = AuthQueryUseCaseImpl::new(tm, ps, auth_service, clock);
         let result = usecase
             .login(LoginQuery {
                 email: valid_email.to_string(),
@@ -155,8 +164,9 @@ mod tests {
             issue_token_result: Arc::new(|| unreachable!()),
             verify_token_result: Arc::new(|| unreachable!()),
         });
+        let clock = Arc::new(FixedClock::new(chrono::Utc::now()));
 
-        let usecase = AuthQueryUseCaseImpl::new(tm, ps, auth_service);
+        let usecase = AuthQueryUseCaseImpl::new(tm, ps, auth_service, clock);
         let result = usecase
             .login(LoginQuery {
                 email: valid_email.to_string(),

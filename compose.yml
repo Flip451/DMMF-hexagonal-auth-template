@@ -37,7 +37,7 @@ services:
         condition: service_healthy
       jaeger:
         condition: service_healthy
-    command: cargo make watch
+    command: bacon run --headless
     networks:
       - app-network
 

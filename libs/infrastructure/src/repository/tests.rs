@@ -6,7 +6,8 @@ use domain::repository::tx::TransactionManager;
 
 #[sqlx::test(migrations = "../../migrations")]
 async fn test_save_and_find_user(pool: sqlx::PgPool) {
-    let tm = SqlxTransactionManager::new(pool);
+    let clock = std::sync::Arc::new(crate::clock::RealClock);
+    let tm = SqlxTransactionManager::new(pool, clock);
 
     let user_id = UserId::new();
     let email = Email::try_from("test@example.com").unwrap();
@@ -69,7 +70,8 @@ async fn test_save_and_find_user(pool: sqlx::PgPool) {
 
 #[sqlx::test(migrations = "../../migrations")]
 async fn test_duplicate_email_error(pool: sqlx::PgPool) {
-    let tm = SqlxTransactionManager::new(pool);
+    let clock = std::sync::Arc::new(crate::clock::RealClock);
+    let tm = SqlxTransactionManager::new(pool, clock);
 
     let email = Email::try_from("duplicate@example.com").unwrap();
     let user1 = User::new(
@@ -117,7 +119,8 @@ async fn test_duplicate_email_error(pool: sqlx::PgPool) {
 
 #[sqlx::test(migrations = "../../migrations")]
 async fn test_transaction_rollback(pool: sqlx::PgPool) {
-    let tm = SqlxTransactionManager::new(pool);
+    let clock = std::sync::Arc::new(crate::clock::RealClock);
+    let tm = SqlxTransactionManager::new(pool, clock);
 
     let email = Email::try_from("rollback@example.com").unwrap();
     let user = User::new(

@@ -21,12 +21,12 @@ args = ["compose", "--profile", "tools", "build"]
 [tasks.up]
 description = "コンテナの起動"
 command = "docker"
-args = ["compose", "--profile", "tools", "up", "-d"]
+args = ["compose", "up", "-d"]
 
 [tasks.down]
 description = "コンテナの停止"
 command = "docker"
-args = ["compose", "--profile", "tools", "down"]
+args = ["compose", "down"]
 
 [tasks.restart]
 description = "コンテナの再起動"
@@ -40,7 +40,7 @@ args = ["compose", "logs", "-f", "app"]
 [tasks.ps]
 description = "コンテナの状態確認"
 command = "docker"
-args = ["compose", "--profile", "tools", "ps"]
+args = ["compose", "ps"]
 
 [tasks.shell]
 description = "ツールコンテナにシェルで入る"
@@ -62,6 +62,11 @@ args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "sqlx", "mig
 description = "マイグレーションの実行"
 command = "docker"
 args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "sqlx", "migrate", "run"]
+
+[tasks.migrate-status]
+description = "マイグレーションの状態確認"
+command = "docker"
+args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "sqlx", "migrate", "info"]
 
 [tasks.migrate-revert]
 description = "マイグレーションのロールバック"
@@ -108,6 +113,12 @@ args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "cargo", "ch
 [tasks.ci]
 description = "CI 統合チェック (fmt, clippy, test, check)"
 dependencies = ["fmt", "clippy", "test", "check"]
+
+[tasks.commit]
+description = "CI チェック後にコミットを実行"
+dependencies = ["ci"]
+command = "git"
+args = ["commit"]
 
 [tasks.clean]
 description = "クリーンアップ"

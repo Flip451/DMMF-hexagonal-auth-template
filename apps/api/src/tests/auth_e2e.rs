@@ -17,20 +17,23 @@ mod e2e_tests {
     use crate::handlers::auth::login::response::LoginResponse;
 
     async fn setup_app(pool: sqlx::PgPool) -> axum::Router {
-        let tx_manager = Arc::new(SqlxTransactionManager::new(pool));
+        let clock = Arc::new(infrastructure::clock::RealClock);
+        let tx_manager = Arc::new(SqlxTransactionManager::new(pool, clock.clone()));
         let uniqueness_checker = Arc::new(UserUniquenessCheckerImpl::new());
         let password_service = Arc::new(Argon2PasswordService::new());
-        let auth_service = Arc::new(JwtAuthService::new("test-secret"));
+        let auth_service = Arc::new(JwtAuthService::new("test-secret", clock.clone()));
 
         let auth_command = Arc::new(AuthCommandUseCaseImpl::new(
             tx_manager.clone(),
             uniqueness_checker,
             password_service.clone(),
+            clock.clone(),
         ));
         let auth_query = Arc::new(AuthQueryUseCaseImpl::new(
             tx_manager,
             password_service,
             auth_service.clone(),
+            clock,
         ));
 
         let state = Arc::new(AppState {

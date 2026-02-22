@@ -7,6 +7,7 @@ use domain::models::user::service::UserUniquenessCheckerImpl;
 use domain::usecase::auth::{AuthCommandUseCaseImpl, AuthQueryUseCaseImpl};
 use infrastructure::auth::jwt::JwtAuthService;
 use infrastructure::auth::password::Argon2PasswordService;
+use infrastructure::clock::RealClock;
 use infrastructure::repository::tx::SqlxTransactionManager;
 use sqlx::postgres::PgPoolOptions;
 use std::env;
@@ -24,12 +25,15 @@ pub mod tests;
 pub struct AppState {
     pub auth_command: Arc<
         AuthCommandUseCaseImpl<
-            SqlxTransactionManager,
+            SqlxTransactionManager<RealClock>,
             UserUniquenessCheckerImpl,
             Argon2PasswordService,
+            RealClock,
         >,
     >,
-    pub auth_query: Arc<AuthQueryUseCaseImpl<SqlxTransactionManager, Argon2PasswordService>>,
+    pub auth_query: Arc<
+        AuthQueryUseCaseImpl<SqlxTransactionManager<RealClock>, Argon2PasswordService, RealClock>,
+    >,
     pub auth_service: Arc<dyn AuthService>,
 }
 
@@ -54,21 +58,25 @@ async fn main() -> anyhow::Result<()> {
     let jwt_secret = env::var("JWT_SECRET").unwrap_or_else(|_| "debug-secret".to_string());
 
     // Infrastructure & Domain Services
-    let tx_manager = Arc::new(SqlxTransactionManager::new(pool));
+    let clock = Arc::new(RealClock);
+    let tx_manager = Arc::new(SqlxTransactionManager::new(pool, clock.clone()));
     let uniqueness_checker = Arc::new(UserUniquenessCheckerImpl::new());
     let password_service = Arc::new(Argon2PasswordService::new());
-    let auth_service: Arc<dyn AuthService> = Arc::new(JwtAuthService::new(&jwt_secret));
+    let auth_service: Arc<dyn AuthService> =
+        Arc::new(JwtAuthService::new(&jwt_secret, clock.clone()));
 
     // UseCase instantiation
     let auth_command = Arc::new(AuthCommandUseCaseImpl::new(
         tx_manager.clone(),
         uniqueness_checker,
         password_service.clone(),
+        clock.clone(),
     ));
     let auth_query = Arc::new(AuthQueryUseCaseImpl::new(
         tx_manager,
         password_service,
         auth_service.clone(),
+        clock,
     ));
 
     let state = Arc::new(AppState {

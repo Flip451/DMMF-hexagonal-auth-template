@@ -6,6 +6,7 @@ use std::sync::Arc;
 
 use self::command::SignupCommand;
 use self::dto::SignupResponseDTO;
+use crate::clock::Clock;
 use crate::models::auth::PasswordService;
 use crate::models::user::{Email, User, UserId, UserUniquenessChecker};
 use crate::repository::tx::TransactionManager;
@@ -16,42 +17,48 @@ pub trait AuthCommandUseCase: Send + Sync {
     async fn signup(&self, command: SignupCommand) -> UseCaseResult<SignupResponseDTO>;
 }
 
-pub struct AuthCommandUseCaseImpl<TM, UC, PS>
+pub struct AuthCommandUseCaseImpl<TM, UC, PS, C>
 where
     TM: TransactionManager,
     UC: UserUniquenessChecker,
     PS: PasswordService,
+    C: Clock,
 {
     transaction_manager: Arc<TM>,
     user_uniqueness_checker: Arc<UC>,
     password_service: Arc<PS>,
+    _clock: Arc<C>,
 }
 
-impl<TM, UC, PS> AuthCommandUseCaseImpl<TM, UC, PS>
+impl<TM, UC, PS, C> AuthCommandUseCaseImpl<TM, UC, PS, C>
 where
     TM: TransactionManager,
     UC: UserUniquenessChecker,
     PS: PasswordService,
+    C: Clock,
 {
     pub fn new(
         transaction_manager: Arc<TM>,
         user_uniqueness_checker: Arc<UC>,
         password_service: Arc<PS>,
+        clock: Arc<C>,
     ) -> Self {
         Self {
             transaction_manager,
             user_uniqueness_checker,
             password_service,
+            _clock: clock,
         }
     }
 }
 
 #[async_trait]
-impl<TM, UC, PS> AuthCommandUseCase for AuthCommandUseCaseImpl<TM, UC, PS>
+impl<TM, UC, PS, C> AuthCommandUseCase for AuthCommandUseCaseImpl<TM, UC, PS, C>
 where
     TM: TransactionManager,
     UC: UserUniquenessChecker + 'static,
     PS: PasswordService + 'static,
+    C: Clock + 'static,
 {
     async fn signup(&self, command: SignupCommand) -> UseCaseResult<SignupResponseDTO> {
         let email = Email::try_from(command.email)?;
@@ -82,6 +89,7 @@ where
 mod tests {
     use super::*;
     use crate::models::user::UserUniquenessViolation;
+    use crate::test_utils::FixedClock;
     use crate::usecase::auth::test_utils::utils::*;
     use crate::usecase::error::UseCaseError;
     use rstest::*;
@@ -106,8 +114,9 @@ mod tests {
             verify_result: Arc::new(|| Ok(true)),
             hash_result: Arc::new(move || Ok(valid_password_hash.clone())),
         });
+        let clock = Arc::new(FixedClock::new(chrono::Utc::now()));
 
-        let usecase = AuthCommandUseCaseImpl::new(tm, checker, ps);
+        let usecase = AuthCommandUseCaseImpl::new(tm, checker, ps, clock);
         let command = SignupCommand {
             email: valid_email.to_string(),
             password: valid_password,
@@ -142,8 +151,9 @@ mod tests {
                 ))
             }),
         });
+        let clock = Arc::new(FixedClock::new(chrono::Utc::now()));
 
-        let usecase = AuthCommandUseCaseImpl::new(tm, checker, ps);
+        let usecase = AuthCommandUseCaseImpl::new(tm, checker, ps, clock);
         let command = SignupCommand {
             email: valid_email.to_string(),
             password: valid_password,

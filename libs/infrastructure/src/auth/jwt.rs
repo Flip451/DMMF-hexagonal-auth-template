@@ -1,25 +1,30 @@
-use chrono::{Duration, Utc};
+use std::sync::Arc;
+
+use chrono::Duration;
+use domain::clock::Clock;
 use domain::models::auth::{AuthService, AuthServiceError, Claims};
 use domain::models::user::UserId;
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
 
-pub struct JwtAuthService {
+pub struct JwtAuthService<C: Clock> {
     encoding_key: EncodingKey,
     decoding_key: DecodingKey,
+    clock: Arc<C>,
 }
 
-impl JwtAuthService {
-    pub fn new(secret: &str) -> Self {
+impl<C: Clock> JwtAuthService<C> {
+    pub fn new(secret: &str, clock: Arc<C>) -> Self {
         Self {
             encoding_key: EncodingKey::from_secret(secret.as_bytes()),
             decoding_key: DecodingKey::from_secret(secret.as_bytes()),
+            clock,
         }
     }
 }
 
-impl AuthService for JwtAuthService {
+impl<C: Clock> AuthService for JwtAuthService<C> {
     fn issue_token(&self, user_id: UserId) -> Result<String, AuthServiceError> {
-        let now = Utc::now();
+        let now = self.clock.now();
         let iat = now.timestamp() as usize;
         let exp = (now + Duration::hours(24)).timestamp() as usize;
 

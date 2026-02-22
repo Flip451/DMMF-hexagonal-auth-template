@@ -28,11 +28,16 @@ impl SqlxUserRepository {
         }
     }
 
-    pub async fn save<'e, E>(executor: E, user: &User) -> Result<(), UserRepositoryError>
+    pub async fn save<'e, E, C>(
+        executor: E,
+        user: &User,
+        clock: &C,
+    ) -> Result<(), UserRepositoryError>
     where
         E: sqlx::Executor<'e, Database = Postgres>,
+        C: domain::clock::Clock,
     {
-        let now = Utc::now();
+        let now = clock.now();
         let system_name = "auth-system";
         let pgm_cd = "auth-user-mgmt";
         let tx_id = "tx-none";

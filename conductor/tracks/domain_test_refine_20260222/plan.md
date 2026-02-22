@@ -3,14 +3,14 @@
 ## 開発フェーズ
 
 ### フェーズ 1: 時刻 (Clock) の抽象化とテスト容易性の向上
-- [ ] **Task: Clock トレイトの定義と基本実装**
-    - [ ] `libs/domain` に `Clock` トレイトを定義 (`fn now(&self) -> DateTime<Utc>`)
-    - [ ] `libs/infrastructure` に `RealClock` (生産用) を実装
-    - [ ] `libs/domain/src/test_utils.rs` (または相当箇所) に `FixedClock` (テスト用) を実装
-- [ ] **Task: UseCase 層への Clock 導入 (TDD)**
-    - [ ] 既存の `AuthUseCase` のテストを、`FixedClock` を使用して特定の時刻に依存するように書き換える (Red)
-    - [ ] `AuthUseCase` 構造体に `Clock` を注入し、`Utc::now()` を `clock.now()` に置き換える (Green)
-- [ ] **Task: Conductor - User Manual Verification 'フェーズ 1: 時刻 (Clock) の抽象化とテスト容易性の向上' (Protocol in workflow.md)**
+- [x] **Task: Clock トレイトの定義と基本実装**
+    - [x] `libs/domain` に `Clock` トレイトを定義 (`fn now(&self) -> DateTime<Utc>`)
+    - [x] `libs/infrastructure` に `RealClock` (生産用) を実装
+    - [x] `libs/domain/src/test_utils.rs` (または相当箇所) に `FixedClock` (テスト用) を実装
+- [x] **Task: UseCase 層への Clock 導入 (TDD)**
+    - [x] 既存の `AuthUseCase` のテストを、`FixedClock` を使用して特定の時刻に依存するように書き換える (Red)
+    - [x] `AuthUseCase` 構造体に `Clock` を注入し、`Utc::now()` を `clock.now()` に置き換える (Green)
+- [~] **Task: Conductor - User Manual Verification 'フェーズ 1: 時刻 (Clock) の抽象化とテスト容易性の向上' (Protocol in workflow.md)**
 
 ### フェーズ 2: ID 生成の抽象化と UUID v7 への移行
 - [ ] **Task: IdGenerator トレイトと UUID v7 実装**
