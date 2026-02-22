@@ -23,7 +23,7 @@
     - [x] ドメイン型と DTO 型の両方が、環境設定に応じて正しく隠蔽/露出されることを確認
 - [x] Task: Conductor - User Manual Verification 'フェーズ 2: 各レイヤーへの統合（ドメインと API）' (Protocol in workflow.md)
 
-### フェーズ 3: インフラ層の統合と最終調整
+### フェーズ 3: インフラ層の統合と最終調整 [9d33b0e]
 - [x] Task: `MaskingFormatter` の実装
     - [x] `infrastructure` 層で、型情報の欠落したフィールド名（名前ベース）に対するフォールバック保護を実装
 - [x] Task: 設定ファイル（config）との連携
@@ -33,4 +33,4 @@
 - [x] Task: Conductor - User Manual Verification 'フェーズ 3: インフラ層の統合と最終調整' (Protocol in workflow.md)
 
 ## Phase: Review Fixes
-- [~] Task: Apply review suggestions
+- [x] Task: Apply review suggestions [9d33b0e]
