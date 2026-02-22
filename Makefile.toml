@@ -118,7 +118,7 @@ args = ["add", "."]
 description = "CI チェック後に git add . とコミットを実行"
 dependencies = ["ci", "add"]
 command = "git"
-args = ["commit", "${@}"]
+args = ["commit", "-m", "${@}"]
 
 [tasks.clean]
 description = "クリーンアップ"
