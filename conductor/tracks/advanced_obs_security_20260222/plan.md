@@ -2,7 +2,7 @@
 
 ## 開発フェーズ
 
-### フェーズ 1: PII 識別基盤と隠蔽ロジックの実装
+### フェーズ 1: PII 識別基盤と隠蔽ロジックの実装 [checkpoint: 124b6a2]
 - [x] Task: PII マーカートレイトと部分隠蔽ロジックの定義
     - [x] `libs/domain/src/sensitive_data.rs` を作成し、`SensitiveData` トレイトを定義
     - [x] 文字列を部分隠蔽する純粋関数 `mask_email`, `mask_generic` の実装
@@ -10,7 +10,7 @@
     - [x] 正常系（Email, Token）、境界値（極端に短い文字列）、異常系（空文字）のテストを記述 (Green)
 - [x] Task: 既存ドメインモデルへの適用
     - [x] `Email`, `PasswordHash` 等に `SensitiveData` トレイトを実装
-- [~] Task: Conductor - User Manual Verification 'フェーズ 1: PII 識別基盤と隠蔽ロジックの実装' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'フェーズ 1: PII 識別基盤と隠蔽ロジックの実装' (Protocol in workflow.md)
 
 ### フェーズ 2: カスタム Tracing レイヤーの実装
 - [ ] Task: `PiiMaskingLayer` の実装
