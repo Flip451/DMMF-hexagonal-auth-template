@@ -1,3 +1,4 @@
+use crate::sensitive_data::{SensitiveData, mask_generic};
 use derive_more::{AsRef, Display};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -29,6 +30,12 @@ impl PasswordHash {
     }
 }
 
+impl SensitiveData for PasswordHash {
+    fn to_masked_string(&self) -> String {
+        mask_generic(&self.0)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -46,5 +53,11 @@ mod tests {
         let hash = PasswordHash::from_str_unchecked(hash_str);
         let s: &str = hash.as_ref();
         assert_eq!(s, hash_str);
+    }
+
+    #[test]
+    fn test_password_hash_masking() {
+        let hash = PasswordHash::from_str_unchecked("v1.longpasswordhashvalue");
+        assert_eq!(hash.to_masked_string(), "v1.***lue");
     }
 }

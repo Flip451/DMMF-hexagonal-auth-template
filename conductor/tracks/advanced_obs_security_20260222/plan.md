@@ -3,15 +3,14 @@
 ## 開発フェーズ
 
 ### フェーズ 1: PII 識別基盤と隠蔽ロジックの実装
-- [ ] Task: PII マーカートレイトと部分隠蔽ロジックの定義
-    - [ ] `libs/domain/src/pii.rs` を作成し、`PiiSensitive` トレイトを定義
-    - [ ] 文字列を部分隠蔽する純粋関数 `mask_partial(input: &str) -> String` の実装
-- [ ] Task: マスキングロジックのユニットテスト (TDD)
-    - [ ] 正常系（Email, Token）、境界値（極端に短い文字列）、異常系（空文字）のテストを記述 (Red)
-    - [ ] `mask_partial` を完成させ、テストをパスさせる (Green)
-- [ ] Task: 既存ドメインモデルへの適用
-    - [ ] `Email`, `PasswordHash` 等に `PiiSensitive` トレイトを実装
-- [ ] Task: Conductor - User Manual Verification 'フェーズ 1: PII 識別基盤と隠蔽ロジックの実装' (Protocol in workflow.md)
+- [x] Task: PII マーカートレイトと部分隠蔽ロジックの定義
+    - [x] `libs/domain/src/sensitive_data.rs` を作成し、`SensitiveData` トレイトを定義
+    - [x] 文字列を部分隠蔽する純粋関数 `mask_email`, `mask_generic` の実装
+- [x] Task: マスキングロジックのユニットテスト (TDD)
+    - [x] 正常系（Email, Token）、境界値（極端に短い文字列）、異常系（空文字）のテストを記述 (Green)
+- [x] Task: 既存ドメインモデルへの適用
+    - [x] `Email`, `PasswordHash` 等に `SensitiveData` トレイトを実装
+- [~] Task: Conductor - User Manual Verification 'フェーズ 1: PII 識別基盤と隠蔽ロジックの実装' (Protocol in workflow.md)
 
 ### フェーズ 2: カスタム Tracing レイヤーの実装
 - [ ] Task: `PiiMaskingLayer` の実装

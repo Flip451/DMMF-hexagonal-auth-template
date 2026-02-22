@@ -4,7 +4,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Advanced Observability & Security (Tracing PII Protection & Masking)**
+- [~] **Track: Advanced Observability & Security (Tracing PII Protection & Masking)**
 *Link: [./tracks/advanced_obs_security_20260222/](./tracks/advanced_obs_security_20260222/)*
 
 ---

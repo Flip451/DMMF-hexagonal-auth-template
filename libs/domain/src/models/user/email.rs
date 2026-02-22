@@ -1,3 +1,4 @@
+use crate::sensitive_data::{SensitiveData, mask_email};
 use derive_more::{AsRef, Display};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -35,6 +36,12 @@ impl TryFrom<&str> for Email {
     }
 }
 
+impl SensitiveData for Email {
+    fn to_masked_string(&self) -> String {
+        mask_email(&self.0)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -57,5 +64,11 @@ mod tests {
         let email = Email::try_from("test@example.com").unwrap();
         let s: &str = email.as_ref();
         assert_eq!(s, "test@example.com");
+    }
+
+    #[test]
+    fn test_email_masking() {
+        let email = Email::try_from("test@example.com").unwrap();
+        assert_eq!(email.to_masked_string(), "t***@example.com");
     }
 }
