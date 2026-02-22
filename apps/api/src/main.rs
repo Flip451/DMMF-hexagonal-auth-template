@@ -9,11 +9,12 @@ use infrastructure::auth::password::Argon2PasswordService;
 use infrastructure::clock::RealClock;
 use infrastructure::id::UuidV7Generator;
 use infrastructure::repository::tx::SqlxTransactionManager;
+use infrastructure::telemetry::init_telemetry;
+use sensitive_data::MaskingControl;
 use sqlx::postgres::PgPoolOptions;
 use std::env;
 use std::sync::Arc;
 use tower_http::trace::TraceLayer;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 mod error;
 mod handlers;
@@ -43,13 +44,22 @@ async fn main() -> anyhow::Result<()> {
     // Load .env file
     dotenvy::dotenv().ok();
 
-    // Initialize tracing
-    tracing_subscriber::registry()
-        .with(tracing_subscriber::EnvFilter::new(
-            env::var("RUST_LOG").unwrap_or_else(|_| "api=debug,tower_http=debug".into()),
-        ))
-        .with(tracing_subscriber::fmt::layer())
-        .init();
+    // Initialize telemetry with MaskingFormatter
+    init_telemetry("api");
+
+    // Configure masking control via environment variable
+    let mask_enabled = env::var("MASK_SENSITIVE_DATA")
+        .map(|v| v.to_lowercase() != "false")
+        .unwrap_or(true);
+    MaskingControl::set_enabled(mask_enabled);
+    tracing::info!(
+        "Sensitive data masking is {}",
+        if MaskingControl::is_enabled() {
+            "ENABLED"
+        } else {
+            "DISABLED"
+        }
+    );
 
     // Database connection
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
