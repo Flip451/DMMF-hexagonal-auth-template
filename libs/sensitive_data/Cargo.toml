@@ -1,0 +1,12 @@
+[package]
+name = "sensitive_data"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+serde = { workspace = true }
+once_cell = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+rstest = { workspace = true }
