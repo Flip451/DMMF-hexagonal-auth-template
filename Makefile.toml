@@ -30,7 +30,8 @@ args = ["compose", "down"]
 
 [tasks.restart]
 description = "コンテナの再起動"
-dependencies = ["down", "up"]
+command = "docker"
+args = ["compose", "restart"]
 
 [tasks.logs]
 description = "ログの表示"
