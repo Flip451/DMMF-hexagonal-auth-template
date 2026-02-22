@@ -2,7 +2,7 @@
 
 ## 開発フェーズ
 
-### フェーズ 1: `sensitive_data` 共通クレートの構築 [checkpoint: f4bd455]
+### フェーズ 1: `sensitive_data` 共通クレートの構築 [checkpoint: f6a8faf]
 - [x] Task: 共通クレートのセットアップ
     - [x] `libs/sensitive_data` クレートを新規作成し、ワークスペースに追加
     - [x] `SensitiveData` トレイトと基本隠蔽ロジック（`EmailRule`, `PlainRule`, `SecretRule`）の実装
