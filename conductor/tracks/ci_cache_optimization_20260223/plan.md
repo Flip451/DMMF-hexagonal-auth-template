@@ -1,14 +1,14 @@
 # Implementation Plan: CI 高速化（キャッシュ導入）
 
 ## フェーズ 1: Dockerfile の最適化と cargo-chef 導入
-- [x] Task: Dockerfile の `cargo-chef` 対応と Cache Mounts の追加
+- [x] Task: Dockerfile の `cargo-chef` 対応と Cache Mounts の追加 [ea4cc89]
     - [x] `chef` ステージの追加とビルドレシピの生成
     - [x] `builder` ステージでの `RUN --mount=type=cache` (registry & target) の導入
-    - [x] `sccache` のインストールと環境変数 (`RUSTC_WRAPPER`) の設定
-- [~] Task: SQLx オフラインモードの設定
-    - [ ] `sqlx prepare` を実行し、`.sqlx` ディレクトリを生成
-    - [ ] `Cargo.toml` または環境変数で `SQLX_OFFLINE=true` を有効化
-- [ ] Task: Conductor - User Manual Verification 'フェーズ 1: Dockerfile 最適化' (Protocol in workflow.md)
+    - [x] `sccache` のインストール and 環境変数 (`RUSTC_WRAPPER`) の設定
+- [x] Task: SQLx オフラインモードの設定 [ea4cc89]
+    - [x] `sqlx prepare` を実行し、`.sqlx` ディレクトリを生成
+    - [x] `Cargo.toml` または環境変数で `SQLX_OFFLINE=true` を有効化
+- [x] Task: Conductor - User Manual Verification 'フェーズ 1: Dockerfile 最適化' (Protocol in workflow.md)
 
 ## フェーズ 2: GitHub Actions ワークフローの更新
 - [ ] Task: `Swatinem/rust-cache` の導入
