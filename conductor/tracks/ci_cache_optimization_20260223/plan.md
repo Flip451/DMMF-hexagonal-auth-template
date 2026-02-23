@@ -7,10 +7,10 @@
     - [x] `sccache` のインストール and 環境変数 (`RUSTC_WRAPPER`) の設定
 - [x] Task: SQLx オフラインモードの設定 [ea4cc89]
     - [x] `sqlx prepare` を実行し、`.sqlx` ディレクトリを生成
-    - [x] `Cargo.toml` または環境変数で `SQLX_OFFLINE=true` を有効化
+    - [x] `Cargo.toml` または環境変数で `SQLX_OFFLINE=true` の有効化
 - [x] Task: Conductor - User Manual Verification 'フェーズ 1: Dockerfile 最適化' (Protocol in workflow.md)
 
-## フェーズ 2: GitHub Actions ワークフローの更新
+## フェーズ 2: GitHub Actions ワークフローの更新 [checkpoint: 4a5ee17]
 - [x] Task: `Swatinem/rust-cache` の導入 [3324782]
     - [x] `.github/workflows/ci.yml` に `rust-cache` アクションを追加
 - [x] Task: Docker キャッシュバックエンド (`type=gha`) の設定 [3324782]
@@ -18,7 +18,7 @@
     - [x] `docker/build-push-action` における `cache-from/to: type=gha` の設定
 - [x] Task: sccache 用のキャッシュアクション追加 [3324782]
     - [x] `actions/cache` を使用し、`sccache` のキャッシュディレクトリを永続化
-- [~] Task: Conductor - User Manual Verification 'フェーズ 2: ワークフロー更新' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'フェーズ 2: ワークフロー更新' (Protocol in workflow.md)
 
 ## フェーズ 3: 検証とクリーンアップ
 - [ ] Task: CI 全体の動作確認とパフォーマンス計測
