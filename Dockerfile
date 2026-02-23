@@ -56,7 +56,7 @@ ENV RUSTC_WRAPPER=/usr/local/bin/sccache \
 
 COPY --from=planner /app/recipe.json recipe.json
 RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
-    --mount=type=cache,target=/app/target,sharing=locked \
+    # --mount=type=cache,target=/app/target,sharing=locked \
     --mount=type=cache,target=/opt/sccache,sharing=shared \
     cargo chef cook --recipe-path recipe.json
 
