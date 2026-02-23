@@ -33,19 +33,14 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Rust Cache (for CI suite)
-        uses: Swatinem/rust-cache@v2
-
       - name: Run CI suite
         run: cargo make ci
         env:
           SCCACHE_HOST_DIR: /home/runner/.cache/sccache
           CARGO_HOME_DIR: /home/runner/.cargo
-          TARGET_DIR: ${{ github.workspace }}/target
 
       - name: Fix permissions for cache
         if: always()
         run: |
-          sudo chown -R $(id -u):$(id -g) ${{ github.workspace }}/target
           sudo chown -R $(id -u):$(id -g) /home/runner/.cargo
           sudo chown -R $(id -u):$(id -g) /home/runner/.cache/sccache
