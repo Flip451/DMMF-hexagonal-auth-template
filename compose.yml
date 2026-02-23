@@ -48,6 +48,7 @@ services:
       target: tools
     environment:
       DATABASE_URL: postgres://user:password@db:5432/myapp
+      SQLX_OFFLINE: "true"
     volumes:
       - .:/app
       - cargo_cache:/usr/local/cargo/registry
