@@ -52,3 +52,10 @@ jobs:
           SCCACHE_HOST_DIR: /home/runner/.cache/sccache
           CARGO_HOME_DIR: /home/runner/.cargo/registry
           TARGET_DIR: ${{ github.workspace }}/target
+
+      - name: Fix permissions for cache
+        if: always()
+        run: |
+          sudo chown -R $(id -u):$(id -g) ${{ github.workspace }}/target
+          sudo chown -R $(id -u):$(id -g) /home/runner/.cargo/registry
+          sudo chown -R $(id -u):$(id -g) /home/runner/.cache/sccache
