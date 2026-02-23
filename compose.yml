@@ -24,13 +24,14 @@ services:
       target: dev
     volumes:
       - .:/app
-      - ${CARGO_HOME_DIR:-cargo_cache}:/usr/local/cargo/registry
+      - ${CARGO_HOME_DIR:-cargo_cache}:/home/runner/.cargo
       - ${TARGET_DIR:-app_target_cache}:/app/target
       - ${SCCACHE_HOST_DIR:-sccache_cache}:/opt/sccache
     environment:
       DATABASE_URL: postgres://user:password@db:5432/myapp
       RUST_LOG: info
       OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+      CARGO_HOME: /home/runner/.cargo
     ports:
       - "8080:8080"
     depends_on:
@@ -49,9 +50,10 @@ services:
     environment:
       DATABASE_URL: postgres://user:password@db:5432/myapp
       SQLX_OFFLINE: "true"
+      CARGO_HOME: /home/runner/.cargo
     volumes:
       - .:/app
-      - ${CARGO_HOME_DIR:-cargo_cache}:/usr/local/cargo/registry
+      - ${CARGO_HOME_DIR:-cargo_cache}:/home/runner/.cargo
       - ${TARGET_DIR:-cli_target_cache}:/app/target
       - ${SCCACHE_HOST_DIR:-sccache_cache}:/opt/sccache
     depends_on:
