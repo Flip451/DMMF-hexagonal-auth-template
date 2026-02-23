@@ -21,6 +21,7 @@ ARG CARGO_DENY_VERSION=0.19.0
 ARG CARGO_MACHETE_VERSION=0.9.1
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
+    --mount=type=cache,target=/opt/sccache,sharing=shared \
     cargo install --locked --version ${SCCACHE_VERSION} sccache --root /usr/local && \
     cargo install --locked --version ${BACON_VERSION} bacon && \
     cargo install --locked --version ${CARGO_MAKE_VERSION} cargo-make && \

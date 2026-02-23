@@ -26,6 +26,7 @@ services:
       - .:/app
       - cargo_cache:/usr/local/cargo/registry
       - app_target_cache:/app/target
+      - sccache_cache:/opt/sccache
     environment:
       DATABASE_URL: postgres://user:password@db:5432/myapp
       RUST_LOG: info
@@ -51,6 +52,7 @@ services:
       - .:/app
       - cargo_cache:/usr/local/cargo/registry
       - cli_target_cache:/app/target
+      - sccache_cache:/opt/sccache
     depends_on:
       db:
         condition: service_healthy
@@ -82,3 +84,4 @@ volumes:
   cargo_cache:
   app_target_cache:
   cli_target_cache:
+  sccache_cache:

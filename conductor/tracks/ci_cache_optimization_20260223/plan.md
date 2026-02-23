@@ -11,7 +11,7 @@
 - [x] Task: Conductor - User Manual Verification 'フェーズ 1: Dockerfile 最適化' (Protocol in workflow.md)
 
 ## フェーズ 2: GitHub Actions ワークフローの更新
-- [ ] Task: `Swatinem/rust-cache` の導入
+- [~] Task: `Swatinem/rust-cache` の導入
     - [ ] `.github/workflows/ci.yml` に `rust-cache` アクションを追加
 - [ ] Task: Docker キャッシュバックエンド (`type=gha`) の設定
     - [ ] `docker/setup-buildx-action` の追加

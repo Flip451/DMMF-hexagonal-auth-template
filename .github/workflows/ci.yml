@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  CARGO_TERM_COLOR: always
+  SQLX_OFFLINE: true
+
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -14,6 +18,33 @@ jobs:
 
       - name: Install cargo-make
         uses: davidB/rust-cargo-make@v1
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Sccache Cache
+        uses: actions/cache@v4
+        with:
+          path: /home/runner/.cache/sccache
+          key: ${{ runner.os }}-sccache-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-sccache-
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Docker Cache for sccache
+        # sccache within docker needs a place to stay
+        run: mkdir -p /home/runner/.cache/sccache
+
+      - name: Build and Push (Cache Only)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: builder
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Run CI suite
         run: cargo make ci
