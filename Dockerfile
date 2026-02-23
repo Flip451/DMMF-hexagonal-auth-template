@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile:1
 ARG RUST_VERSION=1.92.0
+ARG BUILD_ENV=local
 
 # 1. 共通ベース (chef)
 FROM lukemathwalker/cargo-chef:latest-rust-${RUST_VERSION} AS chef
@@ -69,7 +70,6 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
     cargo chef cook --recipe-path recipe.json
 
 # ビルド引数でどちらを使うか選択（デフォルトは local）
-ARG BUILD_ENV=local
 FROM dev-base-${BUILD_ENV} AS dev-base
 
 # 5. アプリケーションビルド専用ステージ (builder)
