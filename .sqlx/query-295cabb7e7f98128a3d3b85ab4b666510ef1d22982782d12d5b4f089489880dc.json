@@ -1,0 +1,88 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                id, email, password_hash,\n                created_at, created_by, created_pgm_cd, created_tx_id,\n                updated_at, updated_by, updated_pgm_cd, updated_tx_id,\n                lock_no\n            FROM users\n            WHERE email = $1\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "email",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "password_hash",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 4,
+        "name": "created_by",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "created_pgm_cd",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "created_tx_id",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 7,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 8,
+        "name": "updated_by",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 9,
+        "name": "updated_pgm_cd",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 10,
+        "name": "updated_tx_id",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 11,
+        "name": "lock_no",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "295cabb7e7f98128a3d3b85ab4b666510ef1d22982782d12d5b4f089489880dc"
+}

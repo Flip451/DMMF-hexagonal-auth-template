@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use domain::models::user::{
     Authenticatable, Email, PasswordHash, User, UserId, UserIdentity, UserRepositoryError,
 };
-use sqlx::{Postgres, query, query_as};
+use sqlx::Postgres;
 use uuid::Uuid;
 
 /// SQLx を使用したユーザーリポジトリの低レベル操作。
@@ -16,11 +16,22 @@ impl SqlxUserRepository {
     where
         E: sqlx::Executor<'e, Database = Postgres>,
     {
-        let row = query_as::<Postgres, UserRow>("SELECT * FROM users WHERE email = $1")
-            .bind(email.as_ref())
-            .fetch_optional(executor)
-            .await
-            .map_err(|e| UserRepositoryError::QueryFailed(e.into()))?;
+        let row = sqlx::query_as!(
+            UserRow,
+            r#"
+            SELECT
+                id, email, password_hash,
+                created_at, created_by, created_pgm_cd, created_tx_id,
+                updated_at, updated_by, updated_pgm_cd, updated_tx_id,
+                lock_no
+            FROM users
+            WHERE email = $1
+            "#,
+            email.as_ref()
+        )
+        .fetch_optional(executor)
+        .await
+        .map_err(|e| UserRepositoryError::QueryFailed(e.into()))?;
 
         match row {
             Some(row) => Ok(Some(User::try_from(row)?)),
@@ -42,7 +53,7 @@ impl SqlxUserRepository {
         let pgm_cd = "auth-user-mgmt";
         let tx_id = "tx-none";
 
-        query(
+        sqlx::query!(
             r#"
             INSERT INTO users (
                 id, email, password_hash,
@@ -60,19 +71,19 @@ impl SqlxUserRepository {
                 lock_no = users.lock_no + 1
             WHERE users.lock_no = $12
             "#,
+            Uuid::from(user.id()),
+            user.email().as_ref(),
+            user.password_hash().as_ref(),
+            now,
+            system_name,
+            pgm_cd,
+            tx_id,
+            now,
+            system_name,
+            pgm_cd,
+            tx_id,
+            1
         )
-        .bind(Uuid::from(user.id()))
-        .bind(user.email().as_ref())
-        .bind(user.password_hash().as_ref())
-        .bind(now)
-        .bind(system_name)
-        .bind(pgm_cd)
-        .bind(tx_id)
-        .bind(now)
-        .bind(system_name)
-        .bind(pgm_cd)
-        .bind(tx_id)
-        .bind(1)
         .execute(executor)
         .await
         .map_err(|e| UserRepositoryError::QueryFailed(e.into()))?;

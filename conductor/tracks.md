@@ -9,5 +9,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: CI 高速化（キャッシュ導入）**
+- [~] **Track: CI 高速化（キャッシュ導入）**
 *Link: [./tracks/ci_cache_optimization_20260223/](./tracks/ci_cache_optimization_20260223/)*

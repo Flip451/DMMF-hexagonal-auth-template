@@ -48,7 +48,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
 
 # 5. アプリケーションビルド専用ステージ (builder)
 FROM builder-base AS builder
-ARG APP_NAME=myapp
+ARG APP_NAME=myapp-server
 COPY . .
 # SQLx offline mode support
 ENV SQLX_OFFLINE=true

@@ -17,7 +17,7 @@ Thumbs.db
 !.env.example
 
 # SQLx
-.sqlx/
+# .sqlx/ is tracked for offline mode
 
 # Gemini CLI Skills (Contains third-party content)
 .gemini/skills/
