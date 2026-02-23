@@ -1,6 +1,6 @@
 # Implementation Plan: CI 高速化（キャッシュ導入）
 
-## フェーズ 1: Dockerfile の最適化と cargo-chef 導入
+## フェーズ 1: Dockerfile の最適化と cargo-chef 導入 [checkpoint: edf149b]
 - [x] Task: Dockerfile の `cargo-chef` 対応と Cache Mounts の追加 [ea4cc89]
     - [x] `chef` ステージの追加とビルドレシピの生成
     - [x] `builder` ステージでの `RUN --mount=type=cache` (registry & target) の導入
