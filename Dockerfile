@@ -34,7 +34,7 @@ FROM chef AS planner
 COPY . .
 RUN cargo chef prepare --recipe-path recipe.json
 
-# 4. 依存関係ビルドの基盤 (builder-base)
+# 4. 依存関係ビルドの基盤 (builder-base) - Release用
 FROM chef AS builder-base
 COPY --from=tools-builder /usr/local/bin/sccache /usr/local/bin/sccache
 ENV RUSTC_WRAPPER=/usr/local/bin/sccache \
@@ -46,6 +46,19 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
     --mount=type=cache,target=/app/target,sharing=locked \
     --mount=type=cache,target=/opt/sccache,sharing=shared \
     cargo chef cook --release --recipe-path recipe.json
+
+# 4-2. 開発/テスト用の依存関係ビルド (dev-base) - Debug用
+FROM chef AS dev-base
+COPY --from=tools-builder /usr/local/bin/sccache /usr/local/bin/sccache
+ENV RUSTC_WRAPPER=/usr/local/bin/sccache \
+    SCCACHE_DIR=/opt/sccache \
+    SCCACHE_IDLE_TIMEOUT=600
+
+COPY --from=planner /app/recipe.json recipe.json
+RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
+    --mount=type=cache,target=/app/target,sharing=locked \
+    --mount=type=cache,target=/opt/sccache,sharing=shared \
+    cargo chef cook --recipe-path recipe.json
 
 # 5. アプリケーションビルド専用ステージ (builder)
 FROM builder-base AS builder
@@ -60,13 +73,13 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
     cp ./target/release/${APP_NAME} /bin/server
 
 # 6. アプリ開発用ステージ (dev)
-FROM builder-base AS dev
+FROM dev-base AS dev
 COPY --from=tools-builder /usr/local/cargo/bin/bacon /usr/local/bin/
 COPY --from=tools-builder /usr/local/cargo/bin/cargo-make /usr/local/bin/
 COPY --from=tools-builder /usr/local/cargo/bin/sqlx /usr/local/bin/
 
 # 7. 運用ツール用ステージ (tools)
-FROM builder-base AS tools
+FROM dev-base AS tools
 COPY --from=tools-builder /usr/local/cargo/bin/sqlx /usr/local/bin/
 COPY --from=tools-builder /usr/local/cargo/bin/cargo-make /usr/local/bin/
 COPY --from=tools-builder /usr/local/cargo/bin/cargo-deny /usr/local/bin/
