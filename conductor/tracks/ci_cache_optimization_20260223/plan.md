@@ -21,7 +21,7 @@
 - [x] Task: Conductor - User Manual Verification 'フェーズ 2: ワークフロー更新' (Protocol in workflow.md)
 
 ## フェーズ 3: 検証とクリーンアップ
-- [ ] Task: CI 全体の動作確認とパフォーマンス計測
+- [~] Task: CI 全体の動作確認とパフォーマンス計測
     - [ ] `cargo make ci` が正常に終了することを確認
     - [ ] キャッシュ有効時の実行時間を計測し、目標値と比較
 - [ ] Task: 不要な設定やキャッシュファイルの削除
