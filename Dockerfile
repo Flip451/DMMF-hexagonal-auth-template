@@ -5,7 +5,8 @@ ARG BUILD_ENV=local
 # 1. 共通ベース (chef)
 FROM lukemathwalker/cargo-chef:latest-rust-${RUST_VERSION} AS chef
 WORKDIR /app
-ENV CARGO_HOME=/home/runner/.cargo
+ENV CARGO_HOME=/home/runner/.cargo \
+    CARGO_TARGET_DIR=/target
 RUN apt-get update && apt-get install -y \
     libpq-dev \
     mold \
@@ -78,10 +79,10 @@ ARG APP_NAME=myapp-server
 COPY . .
 ENV SQLX_OFFLINE=true
 RUN --mount=type=cache,target=${CARGO_HOME}/registry,sharing=locked \
-    --mount=type=cache,target=/app/target,sharing=locked \
+    --mount=type=cache,target=${CARGO_TARGET_DIR},sharing=locked \
     --mount=type=cache,target=/opt/sccache,sharing=shared \
     cargo build --release --bin ${APP_NAME} && \
-    cp ./target/release/${APP_NAME} /bin/server
+    cp ${CARGO_TARGET_DIR}/release/${APP_NAME} /bin/server
 
 # 6. アプリ開発用ステージ (dev)
 FROM dev-base AS dev

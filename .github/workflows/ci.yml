@@ -9,6 +9,8 @@ on:
 env:
   CARGO_TERM_COLOR: always
   SQLX_OFFLINE: true
+  SCCACHE_HOST_DIR: /home/runner/.cache/sccache
+  CARGO_HOME_DIR: /home/runner/.cargo
 
 jobs:
   check:
@@ -16,13 +18,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # sccacheとcargoレジストリのキャッシュ
+      - name: Cache for sccache and cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.SCCACHE_HOST_DIR }}
+            ${{ env.CARGO_HOME_DIR }}/registry
+            ${{ env.CARGO_HOME_DIR }}/git
+          key: ${{ runner.os }}-rust-ci-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-rust-ci-
+
+      - name: Prepare cache directories
+        run: |
+          mkdir -p ${{ env.SCCACHE_HOST_DIR }}
+          mkdir -p ${{ env.CARGO_HOME_DIR }}
+
       - name: Install cargo-make
         uses: davidB/rust-cargo-make@v1
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and Push (Cache Only)
+      - name: Build CI tools image
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -38,12 +57,16 @@ jobs:
       - name: Run CI suite
         run: cargo make ci
         env:
-          SCCACHE_HOST_DIR: /home/runner/.cache/sccache
+          SCCACHE_HOST_DIR: ${{ env.SCCACHE_HOST_DIR }}
+          CARGO_HOME_DIR: ${{ env.CARGO_HOME_DIR }}
+          # ホストの target ディレクトリを CI 上でマウントしないようにする（または空にする）
+          TARGET_DIR: /tmp/ci_target_empty
 
       - name: Fix permissions for cache
         if: always()
         run: |
-          sudo chown -R $(id -u):$(id -g) /home/runner/.cache/sccache
+          sudo chown -R $(id -u):$(id -g) ${{ env.SCCACHE_HOST_DIR }}
+          sudo chown -R $(id -u):$(id -g) ${{ env.CARGO_HOME_DIR }}
 
       - name: Show sccache stats
         run: docker compose --profile tools run --rm sqlx-cli sccache --show-stats
