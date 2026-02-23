@@ -48,3 +48,5 @@ jobs:
 
       - name: Run CI suite
         run: cargo make ci
+        env:
+          SCCACHE_HOST_DIR: /home/runner/.cache/sccache
