@@ -22,14 +22,14 @@ ARG SQLX_VERSION=0.8.6
 ARG CARGO_DENY_VERSION=0.19.0
 ARG CARGO_MACHETE_VERSION=0.9.1
 
-RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
+RUN --mount=type=cache,target=${CARGO_HOME}/registry,sharing=locked \
     --mount=type=cache,target=/opt/sccache,sharing=shared \
     cargo install --locked --version ${SCCACHE_VERSION} sccache --root /usr/local && \
-    cargo install --locked --version ${BACON_VERSION} bacon && \
-    cargo install --locked --version ${CARGO_MAKE_VERSION} cargo-make && \
-    cargo install --locked --version ${SQLX_VERSION} sqlx-cli --no-default-features --features postgres && \
-    cargo install --locked --version ${CARGO_DENY_VERSION} cargo-deny && \
-    cargo install --locked --version ${CARGO_MACHETE_VERSION} cargo-machete
+    cargo install --locked --version ${BACON_VERSION} bacon --root /usr/local && \
+    cargo install --locked --version ${CARGO_MAKE_VERSION} cargo-make --root /usr/local && \
+    cargo install --locked --version ${SQLX_VERSION} sqlx-cli --no-default-features --features postgres --root /usr/local && \
+    cargo install --locked --version ${CARGO_DENY_VERSION} cargo-deny --root /usr/local && \
+    cargo install --locked --version ${CARGO_MACHETE_VERSION} cargo-machete --root /usr/local
 
 # 3. レシピ作成 (planner)
 FROM chef AS planner
@@ -44,7 +44,7 @@ ENV RUSTC_WRAPPER=/usr/local/bin/sccache \
     SCCACHE_IDLE_TIMEOUT=600
 
 COPY --from=planner /app/recipe.json recipe.json
-RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
+RUN --mount=type=cache,target=${CARGO_HOME}/registry,sharing=locked \
     --mount=type=cache,target=/app/target,sharing=locked \
     --mount=type=cache,target=/opt/sccache,sharing=shared \
     cargo chef cook --release --recipe-path recipe.json
@@ -52,15 +52,14 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
 # 4-2. 開発/テスト用の依存関係ビルド (dev-base) - Debug用
 FROM chef AS dev-base-build
 COPY --from=tools-builder /usr/local/bin/sccache /usr/local/bin/sccache
-ENV CARGO_HOME=/home/runner/.cargo \
-    RUSTC_WRAPPER=/usr/local/bin/sccache \
+ENV RUSTC_WRAPPER=/usr/local/bin/sccache \
     SCCACHE_DIR=/opt/sccache \
     SCCACHE_IDLE_TIMEOUT=600
 COPY --from=planner /app/recipe.json recipe.json
 
 # ローカル開発用：キャッシュマウントを使用して高速化
 FROM dev-base-build AS dev-base-local
-RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
+RUN --mount=type=cache,target=${CARGO_HOME}/registry,sharing=locked \
     --mount=type=cache,target=/app/target,sharing=locked \
     --mount=type=cache,target=/opt/sccache,sharing=shared \
     cargo chef cook --recipe-path recipe.json
@@ -77,9 +76,8 @@ FROM dev-base-${BUILD_ENV} AS dev-base
 FROM builder-base AS builder
 ARG APP_NAME=myapp-server
 COPY . .
-# SQLx offline mode support
 ENV SQLX_OFFLINE=true
-RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
+RUN --mount=type=cache,target=${CARGO_HOME}/registry,sharing=locked \
     --mount=type=cache,target=/app/target,sharing=locked \
     --mount=type=cache,target=/opt/sccache,sharing=shared \
     cargo build --release --bin ${APP_NAME} && \
@@ -87,16 +85,16 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
 
 # 6. アプリ開発用ステージ (dev)
 FROM dev-base AS dev
-COPY --from=tools-builder /usr/local/cargo/bin/bacon /usr/local/bin/
-COPY --from=tools-builder /usr/local/cargo/bin/cargo-make /usr/local/bin/
-COPY --from=tools-builder /usr/local/cargo/bin/sqlx /usr/local/bin/
+COPY --from=tools-builder /usr/local/bin/bacon /usr/local/bin/
+COPY --from=tools-builder /usr/local/bin/cargo-make /usr/local/bin/
+COPY --from=tools-builder /usr/local/bin/sqlx /usr/local/bin/
 
 # 7. 運用ツール用ステージ (tools)
 FROM dev-base AS tools
-COPY --from=tools-builder /usr/local/cargo/bin/sqlx /usr/local/bin/
-COPY --from=tools-builder /usr/local/cargo/bin/cargo-make /usr/local/bin/
-COPY --from=tools-builder /usr/local/cargo/bin/cargo-deny /usr/local/bin/
-COPY --from=tools-builder /usr/local/cargo/bin/cargo-machete /usr/local/bin/
+COPY --from=tools-builder /usr/local/bin/sqlx /usr/local/bin/
+COPY --from=tools-builder /usr/local/bin/cargo-make /usr/local/bin/
+COPY --from=tools-builder /usr/local/bin/cargo-deny /usr/local/bin/
+COPY --from=tools-builder /usr/local/bin/cargo-machete /usr/local/bin/
 RUN rustup component add --toolchain ${RUST_VERSION} rustfmt clippy
 
 # 8. 本番実行用 (runtime)
