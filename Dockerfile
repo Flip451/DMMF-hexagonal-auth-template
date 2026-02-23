@@ -48,17 +48,29 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
     cargo chef cook --release --recipe-path recipe.json
 
 # 4-2. 開発/テスト用の依存関係ビルド (dev-base) - Debug用
-FROM chef AS dev-base
+FROM chef AS dev-base-build
 COPY --from=tools-builder /usr/local/bin/sccache /usr/local/bin/sccache
 ENV RUSTC_WRAPPER=/usr/local/bin/sccache \
     SCCACHE_DIR=/opt/sccache \
     SCCACHE_IDLE_TIMEOUT=600
-
 COPY --from=planner /app/recipe.json recipe.json
+
+# ローカル開発用：キャッシュマウントを使用して高速化
+FROM dev-base-build AS dev-base-local
 RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
-    # --mount=type=cache,target=/app/target,sharing=locked \
+    --mount=type=cache,target=/app/target,sharing=locked \
     --mount=type=cache,target=/opt/sccache,sharing=shared \
     cargo chef cook --recipe-path recipe.json
+
+# CI用：マウントを使わずに成果物をイメージレイヤーに保存する
+FROM dev-base-build AS dev-base-ci
+RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
+    --mount=type=cache,target=/opt/sccache,sharing=shared \
+    cargo chef cook --recipe-path recipe.json
+
+# ビルド引数でどちらを使うか選択（デフォルトは local）
+ARG BUILD_ENV=local
+FROM dev-base-${BUILD_ENV} AS dev-base
 
 # 5. アプリケーションビルド専用ステージ (builder)
 FROM builder-base AS builder
