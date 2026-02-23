@@ -44,6 +44,7 @@ services:
       - app-network
 
   sqlx-cli:
+    image: myapp-tools:latest
     build:
       context: .
       target: tools

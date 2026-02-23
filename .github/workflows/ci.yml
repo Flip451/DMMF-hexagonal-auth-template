@@ -28,6 +28,8 @@ jobs:
           context: .
           target: tools
           push: false
+          load: true
+          tags: myapp-tools:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
