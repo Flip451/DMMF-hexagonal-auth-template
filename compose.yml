@@ -24,8 +24,8 @@ services:
       target: dev
     volumes:
       - .:/app
-      - ${CARGO_HOME_DIR:-cargo_cache}:/home/runner/.cargo
-      - ${TARGET_DIR:-app_target_cache}:/target
+      - cargo_cache:/home/runner/.cargo
+      - app_target_cache:/target
       - ${SCCACHE_HOST_DIR:-sccache_cache}:/opt/sccache
     environment:
       DATABASE_URL: postgres://user:password@db:5432/myapp
@@ -52,8 +52,8 @@ services:
       SQLX_OFFLINE: "true"
     volumes:
       - .:/app
-      - ${CARGO_HOME_DIR:-cargo_cache}:/home/runner/.cargo
-      - ${TARGET_DIR:-cli_target_cache}:/target
+      - cargo_cache:/home/runner/.cargo
+      - cli_target_cache:/target
       - ${SCCACHE_HOST_DIR:-sccache_cache}:/opt/sccache
     depends_on:
       db:

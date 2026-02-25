@@ -46,14 +46,11 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # 3. 🌟 コンテナを常駐させる & ボリューム上書きを防ぐ
-      # TARGET_DIRとCARGO_HOME_DIRに「名前付きボリューム」を指定することでホストの空ディレクトリ上書きを防ぐ
+      # 3. 🌟 コンテナを常駐させる
       - name: Start CI container
         run: |
           docker compose --profile tools run -d \
             --name ci-runner \
-            -e TARGET_DIR=cli_target_cache \
-            -e CARGO_HOME_DIR=cargo_cache \
             sqlx-cli tail -f /dev/null
 
       # 4. 🌟 1回のコンテナ内で全タスクを連続実行 (run --rmのオーバーヘッドゼロ)
