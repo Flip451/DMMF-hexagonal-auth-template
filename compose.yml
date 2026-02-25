@@ -53,7 +53,7 @@ services:
     volumes:
       - .:/app
       - ${CARGO_HOME_DIR:-cargo_cache}:/home/runner/.cargo
-      - ${TARGET_DIR:-cli_target_cache}:/target
+      # - ${TARGET_DIR:-cli_target_cache}:/target
       - ${SCCACHE_HOST_DIR:-sccache_cache}:/opt/sccache
     depends_on:
       db:
