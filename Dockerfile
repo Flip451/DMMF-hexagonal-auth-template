@@ -68,6 +68,7 @@ RUN --mount=type=cache,target=${CARGO_HOME}/registry,sharing=locked \
 # CI用：マウントを使わずに成果物をイメージレイヤーに保存する
 FROM dev-base-build AS dev-base-ci
 RUN --mount=type=cache,target=/opt/sccache,sharing=shared \
+    cargo chef cook --check --recipe-path recipe.json --all-targets --all-features && \
     cargo chef cook --recipe-path recipe.json --all-targets --all-features
 
 # ビルド引数でどちらを使うか選択（デフォルトは local）
