@@ -10,7 +10,6 @@ env:
   CARGO_TERM_COLOR: always
   SQLX_OFFLINE: true
   SCCACHE_HOST_DIR: /home/runner/.cache/sccache
-  CARGO_HOME_DIR: /home/runner/.cargo
 
 jobs:
   check:
@@ -18,29 +17,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # sccacheとcargoレジストリのキャッシュ
-      - name: Cache for sccache and cargo
+      # 1. sccacheのキャッシュのみを復元（CargoレジストリはDockerイメージ内のものを使う）
+      - name: Cache for sccache
         uses: actions/cache@v4
         with:
-          path: |
-            ${{ env.SCCACHE_HOST_DIR }}
-            ${{ env.CARGO_HOME_DIR }}/registry
-            ${{ env.CARGO_HOME_DIR }}/git
-          key: ${{ runner.os }}-rust-ci-${{ hashFiles('**/Cargo.lock') }}
+          path: ${{ env.SCCACHE_HOST_DIR }}
+          key: ${{ runner.os }}-sccache-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-rust-ci-
+            ${{ runner.os }}-sccache-
 
-      - name: Prepare cache directories
-        run: |
-          mkdir -p ${{ env.SCCACHE_HOST_DIR }}
-          mkdir -p ${{ env.CARGO_HOME_DIR }}
-
-      - name: Install cargo-make
-        uses: davidB/rust-cargo-make@v1
+      - name: Prepare sccache directory
+        run: mkdir -p ${{ env.SCCACHE_HOST_DIR }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      # 2. イメージのビルド (ユーザーの指摘通り BUILD_ENV=ci を適用)
       - name: Build CI tools image
         uses: docker/build-push-action@v6
         with:
@@ -54,18 +46,26 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      # 3. 🌟 コンテナを常駐させる & ボリューム上書きを防ぐ
+      # TARGET_DIRとCARGO_HOME_DIRに「名前付きボリューム」を指定することでホストの空ディレクトリ上書きを防ぐ
+      - name: Start CI container
+        run: |
+          docker compose --profile tools run -d \
+            --name ci-runner \
+            -e TARGET_DIR=cli_target_cache \
+            -e CARGO_HOME_DIR=cargo_cache \
+            sqlx-cli tail -f /dev/null
+
+      # 4. 🌟 1回のコンテナ内で全タスクを連続実行 (run --rmのオーバーヘッドゼロ)
+      # ホストから cargo make ci を呼ぶのではなく、コンテナ内で ci-local を呼ぶ
       - name: Run CI suite
-        run: cargo make ci
+        run: docker exec ci-runner cargo make ci-local
         env:
           SCCACHE_HOST_DIR: ${{ env.SCCACHE_HOST_DIR }}
-          CARGO_HOME_DIR: ${{ env.CARGO_HOME_DIR }}
-          # ホストの target ディレクトリを CI 上でマウントしないようにする（または空にする）
-
-      - name: Fix permissions for cache
-        if: always()
-        run: |
-          sudo chown -R $(id -u):$(id -g) ${{ env.SCCACHE_HOST_DIR }}
-          sudo chown -R $(id -u):$(id -g) ${{ env.CARGO_HOME_DIR }}
 
       - name: Show sccache stats
-        run: docker compose --profile tools run --rm sqlx-cli sccache --show-stats
+        run: docker exec ci-runner sccache --show-stats
+
+      - name: Fix permissions for sccache
+        if: always()
+        run: sudo chown -R $(id -u):$(id -g) ${{ env.SCCACHE_HOST_DIR }}

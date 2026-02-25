@@ -98,7 +98,7 @@ args = ["clippy", "--all-targets", "--all-features", "--", "-D", "warnings"]
 [tasks.test-local]
 description = "テストの実行"
 command = "cargo"
-args = ["test", "--workspace", "--all-features"]
+args = ["test", "--workspace", "--all-targets", "--all-features"]
 
 [tasks.check-local]
 description = "ビルドチェック"
