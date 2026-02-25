@@ -54,6 +54,8 @@ services:
       SQLX_OFFLINE: "true"
       CARGO_HOME: /home/runner/.cargo
       CARGO_TARGET_DIR: /target
+      RUSTC_WRAPPER: sccache
+      SCCACHE_DIR: /opt/sccache
     volumes:
       - .:/app
       - ${CARGO_HOME_DIR:-cargo_cache}:/home/runner/.cargo

@@ -6,7 +6,9 @@ ARG BUILD_ENV=local
 FROM lukemathwalker/cargo-chef:latest-rust-${RUST_VERSION} AS chef
 WORKDIR /app
 ENV CARGO_HOME=/home/runner/.cargo \
-    CARGO_TARGET_DIR=/target
+    CARGO_TARGET_DIR=/target \
+    RUSTC_WRAPPER=sccache \
+    SCCACHE_DIR=/opt/sccache
 RUN apt-get update && apt-get install -y \
     libpq-dev \
     mold \
@@ -68,7 +70,7 @@ RUN --mount=type=cache,target=${CARGO_HOME}/registry,sharing=locked \
 # CI用：マウントを使わずに成果物をイメージレイヤーに保存する
 FROM dev-base-build AS dev-base-ci
 RUN --mount=type=cache,target=/opt/sccache,sharing=shared \
-    cargo chef cook --recipe-path recipe.json
+    cargo chef cook --recipe-path recipe.json --all-targets --all-features
 
 # ビルド引数でどちらを使うか選択（デフォルトは local）
 FROM dev-base-${BUILD_ENV} AS dev-base

@@ -60,7 +60,6 @@ jobs:
           SCCACHE_HOST_DIR: ${{ env.SCCACHE_HOST_DIR }}
           CARGO_HOME_DIR: ${{ env.CARGO_HOME_DIR }}
           # ホストの target ディレクトリを CI 上でマウントしないようにする（または空にする）
-          TARGET_DIR: /tmp/ci_target_empty
 
       - name: Fix permissions for cache
         if: always()
