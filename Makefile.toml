@@ -5,7 +5,6 @@ default_to_workspace = false
 [env]
 DOCKER_BUILDKIT = "1"
 COMPOSE_DOCKER_CLI_BUILD = "1"
-DATABASE_URL = "postgres://user:password@localhost:5432/myapp"
 
 [tasks.help]
 description = "ヘルプを表示"
@@ -85,45 +84,86 @@ description = "テストを継続的に実行 (baconを使用)"
 command = "docker"
 args = ["compose", "exec", "app", "bacon", "test", "--headless"]
 
+# CI/品質管理 (ローカル環境で実行)
+[tasks.fmt-local]
+description = "コードのフォーマット"
+command = "cargo"
+args = ["fmt", "--all"]
+
+[tasks.clippy-local]
+description = "静的解析"
+command = "cargo"
+args = ["clippy", "--all-targets", "--all-features", "--", "-D", "warnings"]
+
+[tasks.test-local]
+description = "テストの実行"
+command = "cargo"
+args = ["test", "--workspace", "--all-features"]
+
+[tasks.check-local]
+description = "ビルドチェック"
+command = "cargo"
+args = ["check", "--workspace", "--all-targets", "--all-features"]
+
+[tasks.deny-local]
+description = "依存関係のチェック (cargo-deny)"
+command = "cargo"
+args = ["deny", "check", "-D", "warnings"]
+
+[tasks.check-layers-local]
+description = "レイヤー依存関係のチェック (custom script)"
+command = "bash"
+args = ["./scripts/check_layers.sh"]
+
+[tasks.machete-local]
+description = "未使用の依存関係のチェック (cargo-machete)"
+command = "cargo"
+args = ["machete"]
+
+[tasks.ci-local]
+description = "CI 統合チェック (fmt, clippy, test, check, deny, check-layers, machete)"
+dependencies = ["fmt-local", "clippy-local", "test-local", "check-local", "deny-local", "check-layers-local", "machete-local"]
+
 # CI/品質管理 (sqlx-cliコンテナを使用)
 [tasks.fmt]
 description = "コードのフォーマット"
 command = "docker"
-args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "cargo", "fmt", "--all"]
+args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "cargo", "make", "fmt-local"]
 
 [tasks.clippy]
 description = "静的解析"
 command = "docker"
-args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "cargo", "clippy", "--all-targets", "--all-features", "--", "-D", "warnings"]
+args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "cargo", "make", "clippy-local"]
 
 [tasks.test]
 description = "テストの実行"
 command = "docker"
-args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "cargo", "test", "--workspace", "--all-features"]
+args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "cargo", "make", "test-local"]
 
 [tasks.check]
 description = "ビルドチェック"
 command = "docker"
-args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "cargo", "check", "--workspace", "--all-targets", "--all-features"]
+args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "cargo", "make", "check-local"]
 
 [tasks.deny]
 description = "依存関係のチェック (cargo-deny)"
 command = "docker"
-args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "cargo", "deny", "check", "-D", "warnings"]
+args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "cargo", "make", "deny-local"]
 
 [tasks.check-layers]
 description = "レイヤー依存関係のチェック (custom script)"
 command = "docker"
-args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "./scripts/check_layers.sh"]
+args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "cargo", "make", "check-layers-local"]
 
 [tasks.machete]
 description = "未使用の依存関係のチェック (cargo-machete)"
 command = "docker"
-args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "cargo", "machete"]
+args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "cargo", "make", "machete-local"]
 
 [tasks.ci]
 description = "CI 統合チェック (fmt, clippy, test, check, deny, check-layers, machete)"
-dependencies = ["fmt", "clippy", "test", "check", "deny", "check-layers", "machete"]
+command = "docker"
+args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "cargo", "make", "ci-local"]
 
 [tasks.commit]
 description = "CI チェック後にコミットを実行"
