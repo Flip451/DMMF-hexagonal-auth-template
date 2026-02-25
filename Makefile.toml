@@ -99,12 +99,12 @@ args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "cargo", "cl
 [tasks.test]
 description = "テストの実行"
 command = "docker"
-args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "cargo", "test", "--workspace"]
+args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "cargo", "test", "--workspace", "--all-features"]
 
 [tasks.check]
 description = "ビルドチェック"
 command = "docker"
-args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "cargo", "check", "--workspace", "--all-features"]
+args = ["compose", "--profile", "tools", "run", "--rm", "sqlx-cli", "cargo", "check", "--workspace", "--all-targets", "--all-features"]
 
 [tasks.deny]
 description = "依存関係のチェック (cargo-deny)"
