@@ -6,9 +6,7 @@ ARG BUILD_ENV=local
 FROM lukemathwalker/cargo-chef:latest-rust-${RUST_VERSION} AS chef
 WORKDIR /app
 ENV CARGO_HOME=/home/runner/.cargo \
-    CARGO_TARGET_DIR=/target \
-    RUSTC_WRAPPER=sccache \
-    SCCACHE_DIR=/opt/sccache
+    CARGO_TARGET_DIR=/target
 RUN apt-get update && apt-get install -y \
     libpq-dev \
     mold \
