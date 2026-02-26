@@ -12,6 +12,9 @@ RUN apt-get update && apt-get install -y \
     mold \
     clang \
     cmake \
+    curl \
+    pkg-config \
+    libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # 2. ツールビルド専用ステージ
@@ -25,12 +28,13 @@ ARG CARGO_MACHETE_VERSION=0.9.1
 
 RUN --mount=type=cache,target=${CARGO_HOME}/registry,sharing=locked \
     --mount=type=cache,target=/opt/sccache,sharing=shared \
-    cargo install --locked --version ${SCCACHE_VERSION} sccache --root /usr/local && \
-    cargo install --locked --version ${BACON_VERSION} bacon --root /usr/local && \
-    cargo install --locked --version ${CARGO_MAKE_VERSION} cargo-make --root /usr/local && \
-    cargo install --locked --version ${SQLX_VERSION} sqlx-cli --no-default-features --features postgres --root /usr/local && \
-    cargo install --locked --version ${CARGO_DENY_VERSION} cargo-deny --root /usr/local && \
-    cargo install --locked --version ${CARGO_MACHETE_VERSION} cargo-machete --root /usr/local
+    curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash && \
+    cargo binstall -y --root /usr/local sccache@${SCCACHE_VERSION} && \
+    cargo binstall -y --root /usr/local bacon@${BACON_VERSION} && \
+    cargo binstall -y --root /usr/local cargo-make@${CARGO_MAKE_VERSION} && \
+    cargo binstall -y --root /usr/local cargo-deny@${CARGO_DENY_VERSION} && \
+    cargo binstall -y --root /usr/local cargo-machete@${CARGO_MACHETE_VERSION} && \
+    cargo install --locked --version ${SQLX_VERSION} sqlx-cli --no-default-features --features postgres --root /usr/local
 
 # 3. レシピ作成 (planner)
 FROM chef AS planner
@@ -67,6 +71,8 @@ RUN --mount=type=cache,target=${CARGO_HOME}/registry,sharing=locked \
 
 # CI用：マウントを使わずに成果物をイメージレイヤーに保存する
 FROM dev-base-build AS dev-base-ci
+ENV CARGO_PROFILE_DEV_DEBUG=0 \
+    CARGO_PROFILE_TEST_DEBUG=0
 RUN --mount=type=cache,target=/opt/sccache,sharing=shared \
     cargo chef cook --check --recipe-path recipe.json --all-targets --all-features && \
     cargo chef cook --recipe-path recipe.json --all-targets --all-features

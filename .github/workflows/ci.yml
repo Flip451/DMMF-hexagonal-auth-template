@@ -10,6 +10,8 @@ env:
   CARGO_TERM_COLOR: always
   SQLX_OFFLINE: true
   SCCACHE_HOST_DIR: /home/runner/.cache/sccache
+  CARGO_PROFILE_DEV_DEBUG: 0
+  CARGO_PROFILE_TEST_DEBUG: 0
 
 jobs:
   check:
@@ -44,7 +46,7 @@ jobs:
           build-args: |
             BUILD_ENV=ci
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha
 
       # 3. 🌟 コンテナを常駐させる
       - name: Start CI container

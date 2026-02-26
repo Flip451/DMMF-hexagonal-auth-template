@@ -3,3 +3,5 @@ target/
 .env
 *.log
 conductor/
+ci_target_cache/
+ci_cargo_cache/
