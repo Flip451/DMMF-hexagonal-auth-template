@@ -6,7 +6,9 @@ ARG BUILD_ENV=local
 FROM lukemathwalker/cargo-chef:latest-rust-${RUST_VERSION} AS chef
 WORKDIR /app
 ENV CARGO_HOME=/home/runner/.cargo \
-    CARGO_TARGET_DIR=/target
+    CARGO_TARGET_DIR=/target\
+    PATH=/home/runner/.cargo/bin:$PATH
+
 RUN apt-get update && apt-get install -y \
     libpq-dev \
     mold \
@@ -15,7 +17,8 @@ RUN apt-get update && apt-get install -y \
     curl \
     pkg-config \
     libssl-dev \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && rustup component add --toolchain ${RUST_VERSION} rustfmt clippy
 
 # 2. ツールビルド専用ステージ
 FROM chef AS tools-builder
@@ -103,7 +106,6 @@ COPY --from=tools-builder /usr/local/bin/sqlx /usr/local/bin/
 COPY --from=tools-builder /usr/local/bin/cargo-make /usr/local/bin/
 COPY --from=tools-builder /usr/local/bin/cargo-deny /usr/local/bin/
 COPY --from=tools-builder /usr/local/bin/cargo-machete /usr/local/bin/
-RUN rustup component add --toolchain ${RUST_VERSION} rustfmt clippy
 
 # 8. 本番実行用 (runtime)
 FROM gcr.io/distroless/cc-debian12:nonroot AS runtime

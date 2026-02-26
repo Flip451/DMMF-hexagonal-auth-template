@@ -13,7 +13,12 @@ args = ["make", "--list-all-steps"]
 
 # Docker 操作
 [tasks.build]
-description = "Docker イメージのビルド"
+description = "Docker イメージのビルド (appコンテナ用)"
+command = "docker"
+args = ["compose", "build"]
+
+[tasks.build-tools]
+description = "Docker イメージのビルド (ツール用)"
 command = "docker"
 args = ["compose", "--profile", "tools", "build"]
 
